@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/robotics3/turbo-computing-machine/catkin_ws/install/setup.sh

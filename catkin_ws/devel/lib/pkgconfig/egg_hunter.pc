@@ -1,0 +1,8 @@
+prefix=/home/robotics3/turbo-computing-machine/catkin_ws/devel
+
+Name: egg_hunter
+Description: Description of egg_hunter
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/robotics3/turbo-computing-machine/catkin_ws/devel/lib 
+Requires: 
