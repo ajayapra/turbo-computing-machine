@@ -5,6 +5,8 @@ import time
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import String
+
 
 from actionlib_msgs.msg import *
 from geometry_msgs.msg import Point
@@ -21,6 +23,7 @@ class RandomMove(object):
         self.last_turn = 0
 
         rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+        rospy.Subscriber("/lab_two_key", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
         rospy.loginfo("Ready to get out there and avoid some walls!")
@@ -36,8 +39,23 @@ class RandomMove(object):
     def isTimedout(self):
         return self.timeout <= time.time()
 
+    def getKey(self):
+        tty.setraw(sys.stdin.fileno())
+        select.select([sys.stdin], [], [], 0)
+        key = sys.stdin.read(1)
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
+        return key
+
+    def key_callback(self, data):
+        global keyTime, keyMsg
+        keyTime = time.time()
+        keyMsg = data.data
+        print ("in key callback")
+        rospy.loginfo("I heard key %s", data.data)
+
+
     def _latestScan(self, data):
-        if self.timeout and self.timeout <= time.time():
+        if (self.timeout and self.timeout <= time.time()) or keyMsg == 't':
             rospy.signal_shutdown("Execution timer expired")
 
         turnVal = 0
