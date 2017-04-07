@@ -2,15 +2,15 @@
 import rospy
 import math
 import time
+import actionlib
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 
-
 from actionlib_msgs.msg import *
 from geometry_msgs.msg import Point
-from move_base_msgs.msg	import MoveBaseAction, MoveBaseGoal
+from move_base_msgs.msg	import MoveBaseAction, MoveBaseGoal, MoveBaseFeedback
 
 class RandomMove(object):
     def __init__(self, timeout=None):
@@ -34,6 +34,9 @@ class RandomMove(object):
         if timeout:
             self.timeout = time.time() + timeout
 
+        self.keyTime = ""
+        self.keyMsg = ""
+
         rospy.spin()
 
     def isTimedout(self):
@@ -47,16 +50,32 @@ class RandomMove(object):
         return key
 
     def key_callback(self, data):
-        global keyTime, keyMsg
-        keyTime = time.time()
-        keyMsg = data.data
+        self.keyTime = time.time()
+        self.keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
 
 
     def _latestScan(self, data):
-        if (self.timeout and self.timeout <= time.time()) or keyMsg == 't':
+        if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
             rospy.signal_shutdown("Execution timer expired")
+        if (self.keyMsg == 's'):
+            mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+            mvbs.wait_for_server()
+            rospy.loginfo("Waiting for the move_base action server to come up")
+            pt = MoveBaseFeedback()
+            x = pt.base_position.pose.orientation.x
+            y = pt.base_position.pose.orientation.y
+            z = pt.base_position.pose.orientation.z
+            w = pt.base_position.pose.orientation.w
+            frame_id = pt.base_position.header.frame_id
+            rospy.loginfo("X coordinate: %s", x)
+            rospy.loginfo ("Y coordinate: %s", y)
+            rospy.loginfo ("Z coordinate: %s", z)
+            rospy.loginfo ("W coordinate: %s", w)
+            rospy.loginfo ("frame_id: %s", frame_id)
+            rospy.loginfo("base_position: %s", pt.base_position)
+            mvbs.wait_for_result()
 
         turnVal = 0
         speedVal = 0
