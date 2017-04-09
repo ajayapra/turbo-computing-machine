@@ -1,0 +1,18 @@
+<launch>
+
+  <!-- Launch Gazebo with the specified world -->
+  <include file="$(find jackal_gazebo)/launch/jackal_world.launch">
+   <arg name="front_laser" value="true"/>
+  </include>
+
+  <!--- Run gmapping -->
+  <include file="$(find jackal_navigation)/launch/include/gmapping.launch" />
+
+  <!-- Run Rviz with gmapping configuration-->
+  <param name="use_gui" value="true"/>
+  <arg name="config" default="gmapping" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jackal_viz)/rviz/$(arg config).rviz" />
+
+  <!-- Run Random Move -->
+  <node pkg="egg_hunter" name="random_move" type="random_move.py" output="screen"/>
+</launch>
