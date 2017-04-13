@@ -8,6 +8,8 @@ from visualization_msgs.msg import MarkerArray, Marker
 
 class WaypointNav(object):
     def __init__(self):
+        #I think this whole thing should happen in global. Have to look at SMACH implementation to be sure, that init happens only once.
+        #Update. Yes, init does happen only once. Execute happens multiple times.
         self.waypoints = []
         self.waypoint_index = None
 
@@ -31,6 +33,8 @@ class WaypointNav(object):
             temp.target_pose.pose.orientation.w = wp[2]
 
             self.waypoints.append(temp)
+
+            #Guessing everything from this point on goes into execute
 
         self.mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
@@ -96,7 +100,7 @@ class WaypointNav(object):
 
         self.viz_pub.publish(markers=markers)
         rospy.loginfo("Markers Published")
-
+    #Navigation happens here
     def start_nav(self):
         self.mvbs.wait_for_server()
         forward = True
