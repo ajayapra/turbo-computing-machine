@@ -19,7 +19,7 @@ class RandomMove(object):
         rospy.init_node("RandomMove")
 
         self.listener = tf.TransformListener()
-        self.saved_coord = []
+        self.saved_coord = [[]]
         self.count = 0
 
         self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
@@ -64,6 +64,8 @@ class RandomMove(object):
 #Try calling keystroke sub in lasercan sub
     def _latestScan(self, data):
         if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
+            waypoints = rospy.get_param('waypoints')
+            rospy.loginfo('Waypoints: %s', waypoints)
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
 
@@ -85,11 +87,14 @@ class RandomMove(object):
             #      t = self.listener.getLatestCommonTime("/base_link", "/map")
             #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
             #      print position, quaternion
-            coord = [pMap, self.count]
+            coord = [pMap.pose.orientation.x,pMap.pose.orientation.y,pMap.pose.orientation.w, self.count]
+            rospy.loginfo('coordinate: %s', coord)
             self.saved_coord.append(coord)
+            rospy.loginfo('After append Waypoints: %s', self.saved_coord)
             self.count = self.count + 1
+            #self.saved_coord.append(self.count)
             rospy.loginfo("Array Length %d", len(self.saved_coord))
-            rospy.loginfo("Array element: %s", self.saved_coord.pop(len(self.saved_coord)-1))
+            rospy.set_param('waypoints',''.join(str(e) for e in self.saved_coord))
 
             self.keyMsg = ""
 
