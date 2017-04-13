@@ -12,23 +12,30 @@ class WaypointNav(object):
         self.waypoint_index = None
 
         rospy.init_node('waypoint_nav')
-
-        for wp in rospy.get_param('/waypoints_nav/patrolling/waypoints'):
+        waypoint_arr = rospy.get_param('/waypoints_nav/patrolling/waypoints')
+        waypoint_stack =[]
+        i=0
+        while i < (len(waypoint_arr)-1):
+            #Format is [x, y, w, ALVAR]
+            waypoint_stack.append([waypoint_arr[i], waypoint_arr[i+1], waypoint_arr[i+2], waypoint_arr[i+3])
+            i = i+4
+        rospy.loginfo('wp stack: ', wp)
+        for wp in waypoint_stack:
             temp = MoveBaseGoal()
 
             temp.target_pose.header.frame_id = 'map'
-            temp.target_pose.pose.position.x = wp['x']
-            temp.target_pose.pose.position.y = wp['y']
-            temp.target_pose.pose.position.z = wp['z']
+            temp.target_pose.pose.position.x = wp[0]
+            temp.target_pose.pose.position.y = wp[1]
+            temp.target_pose.pose.position.z = 0
 
-            temp.target_pose.pose.orientation.w = 1
+            temp.target_pose.pose.orientation.w = wp[2]
 
             self.waypoints.append(temp)
 
         self.mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
         self.goal_sub = rospy.Subscriber("move_base_simple/goal", PoseStamped,
-                                         self._update_waypoints)
+                                         self._update_waypoints) #This callback should connect to camera and take a picture. Switch states here.
 
         self.amcl_sub = rospy.Subscriber("amcl_pose", PoseWithCovarianceStamped,
                                          self._nearest_waypoint)
