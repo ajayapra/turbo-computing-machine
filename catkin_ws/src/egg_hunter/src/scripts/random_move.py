@@ -3,18 +3,24 @@ import rospy
 import math
 import time
 import actionlib
+import tf
+from tf import TransformListener
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
 
 from actionlib_msgs.msg import *
-from geometry_msgs.msg import Point
-from move_base_msgs.msg	import MoveBaseAction, MoveBaseGoal, MoveBaseFeedback
+from geometry_msgs.msg import *
+
 
 class RandomMove(object):
     def __init__(self, timeout=None):
         rospy.init_node("RandomMove")
+
+        self.listener = tf.TransformListener()
+        self.saved_coord = []
+        self.count = 0
 
         self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
         self.speedCoef = [(-x ** 2 + 8100) / 10000000.0 for x in range(-90,91)]
@@ -42,12 +48,12 @@ class RandomMove(object):
     def isTimedout(self):
         return self.timeout <= time.time()
 
-    def getKey(self):
-        tty.setraw(sys.stdin.fileno())
-        select.select([sys.stdin], [], [], 0)
-        key = sys.stdin.read(1)
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
-        return key
+    # def getKey(self):
+    #     tty.setraw(sys.stdin.fileno())
+    #     select.select([sys.stdin], [], [], 0)
+    #     key = sys.stdin.read(1)
+    #     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
+    #     return key
 
     def key_callback(self, data):
         self.keyTime = time.time()
@@ -55,27 +61,37 @@ class RandomMove(object):
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
 
-
+#Try calling keystroke sub in lasercan sub
     def _latestScan(self, data):
         if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
-            mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-            mvbs.wait_for_server()
-            rospy.loginfo("Waiting for the move_base action server to come up")
-            pt = MoveBaseFeedback()
-            x = pt.base_position.pose.orientation.x
-            y = pt.base_position.pose.orientation.y
-            z = pt.base_position.pose.orientation.z
-            w = pt.base_position.pose.orientation.w
-            frame_id = pt.base_position.header.frame_id
-            rospy.loginfo("X coordinate: %s", x)
-            rospy.loginfo ("Y coordinate: %s", y)
-            rospy.loginfo ("Z coordinate: %s", z)
-            rospy.loginfo ("W coordinate: %s", w)
-            rospy.loginfo ("frame_id: %s", frame_id)
-            rospy.loginfo("base_position: %s", pt.base_position)
-            mvbs.wait_for_result()
+
+            pBase = PoseStamped()
+            pMap = PoseStamped()
+            pBase.header.frame_id = "/base_link";
+            pBase.pose.position.x = 0.0;
+            pBase.pose.position.y = 0.0;
+            pBase.pose.position.z = 0.0;
+            pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
+            pMap = self.listener.transformPose("/map", pBase)
+            [new_x, new_y, new_z, new_w] = tf.transformations.quaternion_from_euler(0, 0, 0)
+            pBase.pose.orientation.x = new_x
+            pBase.pose.orientation.y = new_y
+            pBase.pose.orientation.z = new_z
+            pBase.pose.orientation.w = new_w
+            rospy.loginfo("Position %s",pMap.pose)
+            # if self.listener.frameExists("/base_link") and self.listener.frameExists("/map"):
+            #      t = self.listener.getLatestCommonTime("/base_link", "/map")
+            #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
+            #      print position, quaternion
+            coord = [pMap, self.count]
+            self.saved_coord.append(coord)
+            self.count = self.count + 1
+            rospy.loginfo("Array Length %d", len(self.saved_coord))
+            rospy.loginfo("Array element: %s", self.saved_coord.pop(len(self.saved_coord)-1))
+
+            self.keyMsg = ""
 
         turnVal = 0
         speedVal = 0
