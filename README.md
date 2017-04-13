@@ -6,4 +6,4 @@ Team:
 - Prithvi Kambhampati
 - Roger Gomez
 
-Tasks for Week (3/26)
+For details, see project wiki
