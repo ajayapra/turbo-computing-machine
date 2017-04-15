@@ -1,18 +1,5 @@
 #!/usr/bin/env python
 
-# publisher + subscriber that reads position msgs from
-# camera and calculates movement
-
-# Intro to Robotics - EE5900 - Spring 2017
-#          Assignment #6
-
-#       Project #6 Group #2
-#            prithvi
-#            Aswin
-#        Akhil (Team Lead)
-#
-# Revision: v1.2
-
 # define imports
 import rospy
 import cv2
@@ -21,37 +8,31 @@ import argparse
 import numpy as np
 
 from   sensor_msgs.msg import Image
-from   collections     import deque
-from   object_tracking.msg import position
 
 # Publisher
-def talker():
+#def talker():
     # Node declaration. Publish x, y, and radius to topic: custom_chatter,
     # message class: position, and queue_size: 1.
-    pub = rospy.Publisher('custom_chatter', position, queue_size=1)
+#    pub = rospy.Publisher('custom_chatter', position, queue_size=1)
 
     # Assigning message class, position to a variable.
-    msg = position()
+#    msg = position()
     # x-position is published to position.
-    msg.x = int(x)
+#    msg.x = int(x)
     # y-position is published to position.
-    msg.y = int(y)
+#    msg.y = int(y)
     # radius of object is published to position.
     # The jackal stops if the radius is too small or too large(for safety).
-    if (int(radius) > 15) and (int(radius) < 180) and (int(x) < 610) and (int(x) > 30) and (int(y) < 450) and (int(y) > 30) : 
-        msg.radius = int(radius)
-    else:
-        msg.radius = 60
+#    if (int(radius) > 15) and (int(radius) < 180) and (int(x) < 610) and (int(x) > 30) and (int(y) < 450) and (int(y) > 30) : 
+#        msg.radius = int(radius)
+#    else:
+#        msg.radius = 60
     # Tells rospy the name of the node.
-    rospy.loginfo(msg)
+#    rospy.loginfo(msg)
     # Publishes x, y, and radius values to the topic.
-    pub.publish(msg)
+#    pub.publish(msg)
 
 # Initial declarations.
-counter = 0
-(dX, dY) = (0, 0)
-direction = ""
-pts = deque(maxlen=32)
 radius = 0
 x = 0
 y = 0
@@ -64,121 +45,147 @@ class Tracker:
         # and OpenCV.
         self.bridge = cv_bridge.CvBridge()
         # Uncomment the following two lines to launch windows. 
-        #cv2.namedWindow("window1", 1) 
-        #cv2.namedWindow("window2", 1)
+        cv2.namedWindow("window1", 1) 
+        cv2.namedWindow("window2", 1)
 
         # rospy subscribes to the image_raw topic to receive images.
         self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
     # Function to process the received images. 
     def image_callback(self, msg):
-	global counter
-	global dX
-	global dY
-	global direction
-	global pts
 	global radius
 	global x
 	global y
         # imgmsg_to_cv2 converts an image message pointer to an OpenCV
         # message. 
-        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         # cvtColor applies an adaptive threshold to an array.
-        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        # Yellow threshold
-        # Uncomment the following 3 lines to use yellow as the detector.
-        yellowLower = np.array([20, 130, 130], np.uint8)
-        yellowUpper = np.array([30, 255, 255], np.uint8)
-        mask = cv2.inRange(hsv, yellowLower, yellowUpper)
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+
+	# Green threshold
+	green_lower_range = np.array([67, 100, 100], dtype=np.uint8)
+	green_upper_range = np.array([90, 255, 255], dtype=np.uint8)
+
+	# Orange threshold
+	orange_lower_range = np.array([0, 100, 100], dtype=np.uint8)
+	orange_upper_range = np.array([16, 255, 255], dtype=np.uint8)
 
 	# Blue threshold
-        # Comment the following 3 lines if using yellow.
-	#blueLower = np.array([110, 50, 50], np.uint8)
-        #blueUpper = np.array([130, 255, 255], np.uint8)
-        
-        # cv2.inRange in HSV color space leaves us with a binary mask
-        # representing where in the image the desired color is found.
-        #mask = cv2.inRange(hsv, blueLower, blueUpper)        
-        # A series of dilations and erosions to remove any small blobs left
-        # in the mask.
-        mask = cv2.erode(mask, None, iterations=3)
-        mask = cv2.dilate(mask, None, iterations=6)
-        masked = cv2.bitwise_and(image, image, mask=mask)
-        # Uncomment the below two lines to view the camera image and the
-        # masked image.
-        #cv2.imshow("window1", image)
-        #cv2.imshow("window2", masked)
+	blue_lower_range = np.array([91, 100, 100], dtype=np.uint8)
+	blue_upper_range = np.array([111, 255, 255], dtype=np.uint8)
 
-        # Find contours in the mask and initialize the current center of
-        # the object.
+	# Yellow threshold
+	yellow_lower_range = np.array([27, 100, 100], dtype=np.uint8)
+	yellow_upper_range = np.array([30, 255, 255], dtype=np.uint8)
+
+	# Pink threshold
+	pink_lower_range = np.array([165, 100, 100], dtype=np.uint8)
+	pink_upper_range = np.array([169, 255, 255], dtype=np.uint8)
+
+	# Violet threshold
+	violet_lower_range = np.array([118, 100, 100], dtype=np.uint8)
+	violet_upper_range = np.array([137, 255, 255], dtype=np.uint8)
+
+	# A series of dilations and erosions to remove any small blobs left
+	# in the mask.
+	green_mask = cv2.inRange(hsv, green_lower_range, green_upper_range)
+	orange_mask = cv2.inRange(hsv, orange_lower_range, orange_upper_range)
+	blue_mask = cv2.inRange(hsv, blue_lower_range, blue_upper_range)
+	yellow_mask = cv2.inRange(hsv, yellow_lower_range, yellow_upper_range)
+	pink_mask = cv2.inRange(hsv, pink_lower_range, pink_upper_range)
+	violet_mask = cv2.inRange(hsv, violet_lower_range, violet_upper_range)
+
+	# Count number of violet eggs
+	mask = violet_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	center = None
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 80:
+	    count = count + 1
+	print('violet: ' + str(count))
 
-        # Proceed if at least one contour was found.
-	if len(cnts) > 0:
-            # Find the largest contour in the mask, then use it to 
-            # compute the minimum enclosing circle and centroid.
-	    c = max(cnts, key=cv2.contourArea)
-	    ((x, y), radius) = cv2.minEnclosingCircle(c)
-	    M = cv2.moments(c)
-	    center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+	# Count number of green eggs
+	mask = green_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	    cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 80:
+	    count = count + 1
+	print('green: ' + str(count))
 
-            # Only proceed if the radius meets a minimum size.
-	    if radius > 10:
-                # Draw the circle and centroid on the frame,
-                # then update the list of tracked points.
-		cv2.circle(image, (int(x), int(y)), int(radius),
-                    (0, 255, 255), 2)
-		cv2.circle(image, center, 5, (0, 0, 255), -1)
-		pts.appendleft(center)
- 
-        # Loop over the set of tracked points.
-       	for i in np.arange(1, len(pts)):
-            # if either of the tracked points are None, ignore them.
-	    if pts[i - 1] is None or pts[i] is None:
-	        continue
-       
-            # check to see if enough points have been accumulated in
-	    # the buffer
-	    if counter >= 10 and i == 1 and pts[-10] is not None:
-                # compute the difference between the x and y
-		# coordinates and re-initialize the direction
-		# text variables
-	        dX = pts[-10][0] - pts[i][0]
-	        dY = pts[-10][1] - pts[i][1]
-	        (dirX, dirY) = ("", "")
-                # ensure there is significant movement in the x direction.
-	        if np.abs(dX) > 20:
-	            dirX = "East" if np.sign(dX) == 1 else "West"
-                # ensure there is significant movement in the x direction.
-	        if np.abs(dY) > 20:
-	            dirY = "North" if np.sign(dY) == 1 else "South"
-                # handle when both directions are non-empty
-	        if dirX != "" and dirY != "":
-	            direction = "{}-{}".format(dirY, dirX)
-                # otherwise, only one direction is non-empty
-	        else:
-    	            direction = dirX if dirX != "" else dirY
-            
-            # otherwise, compute the thickness of the line and 
-            # draw the connecting lines.
-	    thickness = int(np.sqrt(32 / float(i + 1)) * 2.5)
-	    cv2.line(image, pts[i - 1], pts[i], (0, 0, 255), thickness)
+	# Count number of pink eggs
+	mask = pink_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	    cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 80:
+	    count = count + 1
+	print('pink: ' + str(count))
 
-        # show the movement deltas and the direction of movement on 
-        # the frame.
-	cv2.putText(image, direction, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
-	    0.65, (0, 0, 255), 3)
+	# Count number of blue eggs
+	mask = blue_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	    cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 80:
+	    count = count + 1
+	print('blue: ' + str(count))
+
+	# Count number of orange eggs
+	mask = orange_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	    cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 100:
+	    count = count + 1
+	print('orange: ' + str(count))
+	
+	# Count number of orange eggs
+	mask = yellow_mask
+	mask = cv2.erode(mask, None, iterations=3)
+	mask = cv2.dilate(mask, None, iterations=6)
+	#masked = cv2.bitwise_and(img, img, mask=mask)
+	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	    cv2.CHAIN_APPROX_SIMPLE)[-2]
+	c = max(cnts, key=cv2.contourArea)
+	((x, y), radius) = cv2.minEnclosingCircle(c)
+	count = 0
+	if radius > 30 and radius < 80:
+	    count = count + 1
+	print('yellow: ' + str(count))
+	
         # Calling the publisher.
-	talker()
-	cv2.putText(image, "x: {}, y: {}, rad: {}".format(int(x), int(y), int(radius)),
-            (10, image.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-            0.35, (0, 0, 255), 1)
-        # Show the frame to the screen and increment the frame counter.
-        # Uncomment the following line to view the frame.
-	#cv2.imshow("window2", image)
-        cv2.waitKey(3)
-	counter += 1
+	#talker()
+	# Show the frame to the screen and increment the frame counter.
+	# Uncomment the following line to view the frame.
+	cv2.imshow("window1", mask)
+	cv2.imshow("window2", img)
+	
 
 # Initialize node.
 rospy.init_node('Track_Marker')

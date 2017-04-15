@@ -1,2 +1,2 @@
-egg_hunter
+SM_trials:egg_hunter
 -DCATKIN_DEVEL_PREFIX=/home/robotics3/turbo-computing-machine/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/robotics3/turbo-computing-machine/catkin_ws/install -G Unix Makefiles

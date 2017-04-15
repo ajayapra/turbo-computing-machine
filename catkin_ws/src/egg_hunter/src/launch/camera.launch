@@ -12,5 +12,5 @@
     <param name="autosize" value="true" />
   </node> -->
 
-  <node name="auto" pkg="object_tracking" type="tracker_proto.py" required="true" />
+  <node name="auto" pkg="egg_hunter" type="tracker_proto.py" required="true" />
 </launch>

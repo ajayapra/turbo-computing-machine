@@ -239,6 +239,12 @@ RT_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/librt.so
 //Enable debian style python package layout
 SETUPTOOLS_DEB_LAYOUT:BOOL=ON
 
+//Value Computed by CMake
+SM_trials_BINARY_DIR:STATIC=/home/robotics3/turbo-computing-machine/catkin_ws/build/SM_trials
+
+//Value Computed by CMake
+SM_trials_SOURCE_DIR:STATIC=/home/robotics3/turbo-computing-machine/catkin_ws/src/SM_trials
+
 //LSB Distrib tag
 UBUNTU:BOOL=TRUE
 
@@ -262,6 +268,9 @@ egg_hunter_BINARY_DIR:STATIC=/home/robotics3/turbo-computing-machine/catkin_ws/b
 
 //Value Computed by CMake
 egg_hunter_SOURCE_DIR:STATIC=/home/robotics3/turbo-computing-machine/catkin_ws/src/egg_hunter
+
+//The directory containing a CMake configuration file for geometry_msgs.
+geometry_msgs_DIR:PATH=/opt/ros/indigo/share/geometry_msgs/cmake
 
 //Value Computed by CMake
 gtest_BINARY_DIR:STATIC=/home/robotics3/turbo-computing-machine/catkin_ws/build/gtest
@@ -423,7 +432,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=3
+CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=4
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
