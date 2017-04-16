@@ -4,6 +4,7 @@ import math
 import time
 import actionlib
 import tf
+import os
 from tf import TransformListener
 
 from geometry_msgs.msg import Twist
@@ -19,7 +20,7 @@ class RandomMove(object):
         rospy.init_node("RandomMove")
 
         self.listener = tf.TransformListener()
-        self.saved_coord = [[]]
+        self.saved_coord = []
         self.count = 0
 
         self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
@@ -66,6 +67,10 @@ class RandomMove(object):
         if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
             waypoints = rospy.get_param('waypoints')
             rospy.loginfo('Waypoints: %s', waypoints)
+            rospy.loginfo('Dumping waypoints')
+            # os.system("rosparam dump ~/home/robotics/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+            os.system("rosparam dump waypoints.yaml /navigation/waypoints")
+            rospy.loginfo('Waypoints dumped')
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
 
@@ -87,7 +92,8 @@ class RandomMove(object):
             #      t = self.listener.getLatestCommonTime("/base_link", "/map")
             #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
             #      print position, quaternion
-            coord = [pMap.pose.orientation.x,pMap.pose.orientation.y,pMap.pose.orientation.w, self.count]
+            #      rospy.loginfo('Pose X Position:: %s',position.pose)
+            coord = [pMap.pose.position.x,pMap.pose.position.y,pMap.pose.orientation.w, self.count]
             rospy.loginfo('coordinate: %s', coord)
             self.saved_coord.append(coord)
             rospy.loginfo('After append Waypoints: %s', self.saved_coord)
