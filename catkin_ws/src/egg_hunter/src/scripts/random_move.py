@@ -68,8 +68,7 @@ class RandomMove(object):
             waypoints = rospy.get_param('waypoints')
             rospy.loginfo('Waypoints: %s', waypoints)
             rospy.loginfo('Dumping waypoints')
-            # os.system("rosparam dump ~/home/robotics/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-            os.system("rosparam dump waypoints.yaml /navigation/waypoints")
+            os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
             rospy.loginfo('Waypoints dumped')
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
