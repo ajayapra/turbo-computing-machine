@@ -102,7 +102,10 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+	try:
+	    c = max(cnts, key=cv2.contourArea)
+	except:
+	    c = 0
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 80:
@@ -116,7 +119,11 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+        try:
+            c = max(cnts, key=cv2.contourArea)
+        except:
+            c = 0
+
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 80:
@@ -130,7 +137,11 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+        try:
+            c = max(cnts, key=cv2.contourArea)
+        except:
+            c = 0
+
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 80:
@@ -144,7 +155,11 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+        try:
+            c = max(cnts, key=cv2.contourArea)
+        except:
+            c = 0
+
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 80:
@@ -158,7 +173,11 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+        try:
+            c = max(cnts, key=cv2.contourArea)
+        except:
+            c = 0
+
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 100:
@@ -172,7 +191,11 @@ class Tracker:
 	#masked = cv2.bitwise_and(img, img, mask=mask)
 	cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
 	    cv2.CHAIN_APPROX_SIMPLE)[-2]
-	c = max(cnts, key=cv2.contourArea)
+        try:
+            c = max(cnts, key=cv2.contourArea)
+        except:
+            c = 0
+
 	((x, y), radius) = cv2.minEnclosingCircle(c)
 	count = 0
 	if radius > 30 and radius < 80:
