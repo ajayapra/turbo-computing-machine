@@ -14,16 +14,17 @@ class WaypointNav(object):
         self.waypoint_index = None
 
         rospy.init_node('waypoint_nav')
-        waypoint_arr = rospy.get_param('/waypoints_nav/patrolling/waypoints')
-        waypoint_stack =[]
-        i=0
-        while i < (len(waypoint_arr)-1):
-            #Format is [x, y, w, ALVAR]
-            waypoint_stack.append([waypoint_arr[i], waypoint_arr[i+1], waypoint_arr[i+2], waypoint_arr[i+3])
-            i = i+4
-        rospy.loginfo('wp stack: ', wp)
-        for wp in waypoint_stack:
+        waypoint_arr = rospy.get_param('/patrolling/waypoints')
+        rospy.loginfo('Printing arr:: %s', waypoint_arr)
+        rospy.loginfo('Length of array:: %2f',len(waypoint_arr)-1 )
+
+        for wp in waypoint_arr:
             temp = MoveBaseGoal()
+
+            rospy.loginfo('wp[0]::%2f', wp[0])
+            rospy.loginfo('wp[1]::%2f', wp[1])
+            rospy.loginfo('wp[2]::%2f', wp[2])
+            rospy.loginfo('wp[3]::%2f', wp[3])
 
             temp.target_pose.header.frame_id = 'map'
             temp.target_pose.pose.position.x = wp[0]
