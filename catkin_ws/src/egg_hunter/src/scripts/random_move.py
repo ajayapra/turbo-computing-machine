@@ -5,6 +5,7 @@ import time
 import actionlib
 import tf
 import os
+import numpy
 from tf import TransformListener
 
 from geometry_msgs.msg import Twist
@@ -65,10 +66,18 @@ ma
     def _latestScan(self, data):
         if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
             waypoints = rospy.get_param('waypoints')
+
             rospy.loginfo('Waypoints: %s', waypoints)
             rospy.loginfo('Dumping waypoints')
+<<<<<<< HEAD
             os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")h 
+=======
+
+            os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+
+>>>>>>> 41b606b113f1e9afb0d1088bc276bc7fb2cc8588
             rospy.loginfo('Waypoints dumped')
+
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
 
@@ -85,6 +94,7 @@ ma
             pBase.pose.orientation.y = new_y
             pBase.pose.orientation.z = new_z
             pBase.pose.orientation.w = new_w
+
             rospy.loginfo("Position %s",pMap.pose)
             # if self.listener.frameExists("/base_link") and self.listener.frameExists("/map"):
             #      t = self.listener.getLatestCommonTime("/base_link", "/map")
@@ -92,13 +102,16 @@ ma
             #      print position, quaternion
             #      rospy.loginfo('Pose X Position:: %s',position.pose)
             coord = [pMap.pose.position.x,pMap.pose.position.y,pMap.pose.orientation.w, self.count]
-            rospy.loginfo('coordinate: %s', coord)
+
             self.saved_coord.append(coord)
+
             rospy.loginfo('After append Waypoints: %s', self.saved_coord)
+
             self.count = self.count + 1
-            #self.saved_coord.append(self.count)
+
             rospy.loginfo("Array Length %d", len(self.saved_coord))
-            rospy.set_param('waypoints',''.join(str(e) for e in self.saved_coord))
+
+            rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
 
             self.keyMsg = ""
 
