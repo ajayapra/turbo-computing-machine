@@ -61,14 +61,13 @@ class RandomMove(object):
         self.keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
-
-#Try calling keystroke sub in lasercan sub
+ma
     def _latestScan(self, data):
         if (self.timeout and self.timeout <= time.time()) or self.keyMsg == 't':
             waypoints = rospy.get_param('waypoints')
             rospy.loginfo('Waypoints: %s', waypoints)
             rospy.loginfo('Dumping waypoints')
-            os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+            os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")h 
             rospy.loginfo('Waypoints dumped')
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
