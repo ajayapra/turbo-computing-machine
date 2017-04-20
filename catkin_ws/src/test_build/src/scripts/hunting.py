@@ -18,7 +18,10 @@ from std_msgs.msg import String
 from actionlib_msgs.msg import *
 from geometry_msgs.msg import *
 
-
+import cv2
+import cv_bridge
+import argparse
+from sensor_msgs.msg import Image
 
 class random_move(smach.State):
     def __init__(self):
@@ -57,3 +60,38 @@ class random_move(smach.State):
         if timeout:
             self.timeout = time.time() + timeout
         rospy.spin()
+
+class get_waypoint(smach.State):
+    def __init__(self):
+        smach.State.__init__(self,outcomes=['got_waypoint'])
+
+    def execute(self, userdata):
+        rospy.loginfo('getting waypoint')
+        return 'got_waypoint'
+
+class check_waypoint(smach.State):
+    def __init__(self):
+        smach.State.__init__(self,outcomes=['waypoint_present','add_waypoint'])
+
+    def execute(self, userdata):
+        rospy.loginfo('checking waypoint')
+        # Subscribe to waypoint message and get the waypoint
+        for i in len(waypoints):
+            if got_waypoint in waypoints:
+                return 'waypoint_present'
+            else:
+                return 'add_waypoint'
+
+def click_picture(smach.State):
+    def __init__(self):
+        smach.State.__init__(self,outcomes=[['num_eggs'])
+        self.bridge = cv_bridge.CvBridge()
+    def image_callback(self, msg):
+        rospy.loginfo('counting_eggs')
+        
+        # Count eggs
+
+
+    def execute(seld, userdata):
+        self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
+        return 'num_eggs'
