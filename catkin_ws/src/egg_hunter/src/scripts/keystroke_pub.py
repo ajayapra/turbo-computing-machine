@@ -35,6 +35,9 @@ if __name__ == '__main__':
             elif key_pressed == 's' or key_pressed == 'S':
                 message = "s"
                 print ("message %s", message)
+            elif key_pressed == 'h' or key_pressed == 'H':
+                message = "h"
+                print ("message %s", message)
             elif key_pressed == 'o' or key_pressed == 'O':
                 break
             publish_msg = message

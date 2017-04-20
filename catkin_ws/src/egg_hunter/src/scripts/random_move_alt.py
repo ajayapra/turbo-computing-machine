@@ -22,6 +22,7 @@ import roslaunch
 import tf
 import os
 import numpy
+import traceback
 
 from tf import TransformListener
 
@@ -46,7 +47,7 @@ start_time  =  0
 #Roger - Start
 keyTime = time.time()
 keyMsg = ""
-listener = ""
+# listener = ""
 count = 0
 #Roger - End
 
@@ -102,7 +103,7 @@ def key_callback(data):
 
 # define callback for twist
 def Callback(data):
-    global linear_min, linear_max, angular_min, angular_max, keyMsg, listener
+    global linear_min, linear_max, angular_min, angular_max, keyMsg
     #Roger - Start
     if (keyMsg == 't'):
         waypoints = rospy.get_param('waypoints')
@@ -124,8 +125,13 @@ def Callback(data):
         pBase.pose.position.x = 0.0;
         pBase.pose.position.y = 0.0;
         pBase.pose.position.z = 0.0;
-        pBase.header.stamp = listener.getLatestCommonTime("/base_link", "/map")
-        pMap = listener.transformPose("/map", pBase)
+        try:
+            listener = tf.TransformListener()
+            pBase.header.stamp = rospy.time()#listener.getLatestCommonTime("/base_link", "/map")
+            pMap = listener.transformPose("/map", pBase)
+        except Exception, err:
+            pass#print Exception, err
+        traceback.print_exc()
         [new_x, new_y, new_z, new_w] = tf.transformations.quaternion_from_euler(0, 0, 0)
         pBase.pose.orientation.x = new_x
         pBase.pose.orientation.y = new_y
@@ -138,7 +144,7 @@ def Callback(data):
         #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
         #      print position, quaternion
         #      rospy.loginfo('Pose X Position:: %s',position.pose)
-        coord = [pMap.pose.position.x,pMap.pose.position.y,pMap.pose.orientation.w, self.count]
+        coord = [pMap.pose.position.x,pMap.pose.position.y,pMap.pose.orientation.w, count]
 
         saved_coord.append(coord)
 

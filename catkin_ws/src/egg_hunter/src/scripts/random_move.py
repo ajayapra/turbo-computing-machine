@@ -28,6 +28,8 @@ class RandomMove(object):
         self.linear_min  = 0
         self.linear_max  = 0
         self.start_time  =  0
+	self.halt = 0
+	self.haltcount = 1
         self.listener = tf.TransformListener()
         self.saved_coord = []
         self.runcount = 0
@@ -159,7 +161,13 @@ class RandomMove(object):
 
 
             self.keyMsg = ""
-
+	if (self.keyMsg == 'h'):
+		self.haltcount = self.haltcount + 1
+		self.halt = (-1)**(self.haltcount)+self.halt
+		self.keyMsg = ""
+	rospy.loginfo("Halt Flag: %s", self.halt)
+		
+		
         scale       =  1
         self.angular_min = -1
         self.linear_min  = -1
@@ -257,7 +265,10 @@ class RandomMove(object):
                 # push Twist msgs
                 linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
                 angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
-                self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+		if (self.halt == 1):
+			self.publish_msg = Twist()
+		else:
+                	self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
 		self._publish_markers()
         rospy.loginfo('Published Twist')
 
