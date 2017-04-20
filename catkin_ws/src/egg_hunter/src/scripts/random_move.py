@@ -45,7 +45,7 @@ class RandomMove(object):
         self.last_turn = 0
 
         rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
-        rospy.Subscriber("/lab_two_key", String, self.key_callback)
+        rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 	self.viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
                                        MarkerArray, queue_size=10)
@@ -143,8 +143,8 @@ class RandomMove(object):
             temp.target_pose.pose.orientation.z = pMap.pose.orientation.z
             temp.target_pose.pose.orientation.w = pMap.pose.orientation.w
             self.waypoints.append(temp)
-	    rospy.loginfo(self.waypoints)
-            rospy.loginfo("Position %s",pMap.pose)
+	    #rospy.loginfo(self.waypoints)
+            #rospy.loginfo("Position %s",pMap.pose)
             # if self.listener.frameExists("/base_link") and self.listener.frameExists("/map"):
             #      t = self.listener.getLatestCommonTime("/base_link", "/map")
             #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
@@ -154,11 +154,11 @@ class RandomMove(object):
 
             self.saved_coord.append(coord)
 
-            rospy.loginfo('After append Waypoints: %s', self.saved_coord)
+            #rospy.loginfo('After append Waypoints: %s', self.saved_coord)
 
             self.count = self.count + 1
 
-            rospy.loginfo("Array Length %d", len(self.saved_coord))
+            #rospy.loginfo("Array Length %d", len(self.saved_coord))
 
             rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
 

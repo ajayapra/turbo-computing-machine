@@ -16,7 +16,7 @@ def getKey():
 
 if __name__ == '__main__':
     settings = termios.tcgetattr(sys.stdin)
-    key_pub = rospy.Publisher("lab_two_key", String, queue_size=1)
+    key_pub = rospy.Publisher("action_input", String, queue_size=1)
     rospy.init_node("keystroke_pub")
     # BEGIN TERMIOS
     old_attr = termios.tcgetattr(sys.stdin)
