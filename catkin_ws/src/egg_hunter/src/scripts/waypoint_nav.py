@@ -29,9 +29,8 @@ class WaypointNav(object):
             temp.target_pose.header.frame_id = 'map'
             temp.target_pose.pose.position.x = wp[0]
             temp.target_pose.pose.position.y = wp[1]
-            temp.target_pose.pose.position.z = 0
-
-            temp.target_pose.pose.orientation.w = wp[2]
+            temp.target_pose.pose.orientation.z = wp[2]
+            temp.target_pose.pose.orientation.w = wp[3]
 
             self.waypoints.append(temp)
 
@@ -87,19 +86,18 @@ class WaypointNav(object):
             temp.ns = "patrolling"
             temp.action = Marker.ADD
 
-            temp.type = Marker.CUBE
+            temp.type = Marker.ARROW
             temp.pose = wp.target_pose.pose
-            temp.scale.x = 0.5
-            temp.scale.y = 0.5
-            temp.scale.z = 0.5
+            temp.scale.x = 0.6
+            temp.scale.y = 0.3
+            temp.scale.z = 0.3
             temp.color.a = 1
             temp.color.r = 0
-            temp.color.g = 1
-            temp.color.b = 0
-
+            temp.color.g = 0.5
+            temp.color.b = 0.5
             markers.append(temp)
-
         self.viz_pub.publish(markers=markers)
+
         rospy.loginfo("Markers Published")
     #Navigation happens here
     def start_nav(self):

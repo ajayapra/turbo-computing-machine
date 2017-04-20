@@ -73,15 +73,15 @@ class RandomMove(object):
             temp.ns = "patrolling"
             temp.action = Marker.ADD
 
-            temp.type = Marker.CUBE
+            temp.type = Marker.ARROW
             temp.pose = wp.target_pose.pose
-            temp.scale.x = 0.5
-            temp.scale.y = 0.5
-            temp.scale.z = 0.5
+            temp.scale.x = 0.75
+            temp.scale.y = 0.3
+            temp.scale.z = 0.3
             temp.color.a = 1
             temp.color.r = 0
-            temp.color.g = 1
-            temp.color.b = 0
+            temp.color.g = 0.5
+            temp.color.b = 0.5
             markers.append(temp)
         self.viz_pub.publish(markers=markers)
 
@@ -137,6 +137,9 @@ class RandomMove(object):
             temp.target_pose.pose.position.x = pMap.pose.position.x
             temp.target_pose.pose.position.y = pMap.pose.position.y
             temp.target_pose.pose.position.z = 0
+            temp.target_pose.pose.orientation.x = 0
+            temp.target_pose.pose.orientation.y = 0
+            temp.target_pose.pose.orientation.z = pMap.pose.orientation.z
             temp.target_pose.pose.orientation.w = pMap.pose.orientation.w
             self.waypoints.append(temp)
 	    rospy.loginfo(self.waypoints)
@@ -146,7 +149,7 @@ class RandomMove(object):
             #      position, quaternion = self.listener.lookupTransform("/base_link", "/map", t)
             #      print position, quaternion
             #      rospy.loginfo('Pose X Position:: %s',position.pose)
-            coord = [pMap.pose.position.x,pMap.pose.position.y,pMap.pose.orientation.w, self.count]
+            coord = [pMap.pose.position.x,pMap.pose.position.y, pMap.pose.orientation.z, pMap.pose.orientation.w, self.count]
 
             self.saved_coord.append(coord)
 
@@ -166,8 +169,8 @@ class RandomMove(object):
 		self.halt = (-1)**(self.haltcount)+self.halt
 		self.keyMsg = ""
 	rospy.loginfo("Halt Flag: %s", self.halt)
-		
-		
+
+
         scale       =  1
         self.angular_min = -1
         self.linear_min  = -1
