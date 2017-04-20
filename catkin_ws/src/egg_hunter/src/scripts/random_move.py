@@ -8,6 +8,8 @@ import tf
 import os
 import numpy
 from tf import TransformListener
+from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
+from visualization_msgs.msg import MarkerArray, Marker
 
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
@@ -31,6 +33,7 @@ class RandomMove(object):
         self.count = 0
         self.countLimit = random.randrange(25,75)
         self.publish_msg = Twist()
+	self.waypoints = []
 
         self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
         self.speedCoef = [(-x ** 2 + 8100) / 10000000.0 for x in range(-90,91)]
@@ -41,6 +44,8 @@ class RandomMove(object):
         rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
         rospy.Subscriber("/lab_two_key", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+	self.viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
+                                       MarkerArray, queue_size=10)
 
         rospy.loginfo("Ready to get out there and avoid some walls!")
         rospy.logdebug(self.turnCoef)
@@ -55,15 +60,32 @@ class RandomMove(object):
 
         rospy.spin()
 
+    def _publish_markers(self):
+        markers = []
+        for i, wp in enumerate(self.waypoints):
+            temp = Marker()
+
+            temp.header = wp.target_pose.header
+            temp.id = i
+            temp.ns = "patrolling"
+            temp.action = Marker.ADD
+
+            temp.type = Marker.CUBE
+            temp.pose = wp.target_pose.pose
+            temp.scale.x = 0.5
+            temp.scale.y = 0.5
+            temp.scale.z = 0.5
+            temp.color.a = 1
+            temp.color.r = 0
+            temp.color.g = 1
+            temp.color.b = 0
+            markers.append(temp)
+        self.viz_pub.publish(markers=markers)
+
+
     def isTimedout(self):
         return self.timeout <= time.time()
 
-    # def getKey(self):
-    #     tty.setraw(sys.stdin.fileno())
-    #     select.select([sys.stdin], [], [], 0)
-    #     key = sys.stdin.read(1)
-    #     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
-    #     return key
 
     def key_callback(self, data):
         self.keyTime = time.time()
@@ -98,7 +120,14 @@ class RandomMove(object):
             pBase.pose.orientation.y = new_y
             pBase.pose.orientation.z = new_z
             pBase.pose.orientation.w = new_w
-
+	    temp = MoveBaseGoal()
+            temp.target_pose.header.frame_id = 'map'
+            temp.target_pose.pose.position.x = pMap.pose.position.x
+            temp.target_pose.pose.position.y = pMap.pose.position.y
+            temp.target_pose.pose.position.z = 0
+            temp.target_pose.pose.orientation.w = pMap.pose.orientation.w
+            self.waypoints.append(temp)
+	    rospy.loginfo(self.waypoints)
             rospy.loginfo("Position %s",pMap.pose)
             # if self.listener.frameExists("/base_link") and self.listener.frameExists("/map"):
             #      t = self.listener.getLatestCommonTime("/base_link", "/map")
@@ -116,6 +145,8 @@ class RandomMove(object):
             rospy.loginfo("Array Length %d", len(self.saved_coord))
 
             rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
+            
+
 
             self.keyMsg = ""
 
@@ -125,7 +156,6 @@ class RandomMove(object):
         self.angular_max =  1
         self.linear_max  =  1
         self.start_time  =  0
-
         # Constants for laser averaging
         front_delta = 15
         side_ang    = 30
@@ -218,6 +248,7 @@ class RandomMove(object):
                 linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
                 angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
                 self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+		self._publish_markers()
         rospy.loginfo('Published Twist')
 
 if __name__ == "__main__":
