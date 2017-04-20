@@ -26,8 +26,8 @@
 
   <!-- Run Rviz with gmapping configuration-->
   <param name="use_gui" value="true"/>
-  <arg name="config" default="gmapping" />
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jackal_viz)/rviz/$(arg config).rviz" />
+  <arg name="config" default="egghunt" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find egg_hunter)/src/scripts/rvizconfig/$(arg config).rviz" />
 
 
 <group ns="navigation">
