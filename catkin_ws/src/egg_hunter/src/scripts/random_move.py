@@ -105,16 +105,17 @@ class RandomMove(object):
             #os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
             #os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
             os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
+	    os.system("rosrun map_server map_saver -f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
             rospy.loginfo('Path: %s',)
-            rospy.loginfo('Waypoints dumped')
-            package ='map_server'
-            executable ='map_saver'
-            # node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
-            # launch = roslaunch.scriptapi.ROSLaunch()
-            # launch.start()
-            # process = launch.launch(node)
-            # while process.is_alive():
-            #     pass
+            rospy.loginfo('Waypoints dumped. Map Saved')
+            #package ='map_server'
+            #executable ='map_saver'
+            #node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/map")
+            #launch = roslaunch.scriptapi.ROSLaunch()
+            #launch.start()
+            #process = launch.launch(node)
+            #while process.is_alive():
+            #    pass
 
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):

@@ -13,22 +13,21 @@
   </include>
   <include file="$(find jackal_control)/launch/control.launch" />
 
-  <arg name="map_file" default="$(find egg_hunter)/src/scripts/dataset/1/map.yaml"/>
+  <arg name="map_file" default="$(find egg_hunter)/src/scripts/maps/map.yaml"/>
   <!--<arg name="map_file" default="$(find jackal_navigation)/maps/jackal_race.yaml"/>-->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
   <include file="$(find jackal_navigation)/launch/include/amcl.launch"/>
   <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
-  <rosparam command="load" file="$(find egg_hunter)/src/scripts/dataset/1/waypoints.yaml" ns="patrolling/waypoints"/>
+  <rosparam command="load" file="$(find egg_hunter)/src/scripts/waypoints/waypoints.yaml" ns="patrolling/waypoints"/>
 
-  <!--<node pkg="patrolling" name="jackal_spawner" type="jackal_spawner.py"  output="screen"/>-->
-<!--
+
   <node pkg="egg_hunter" name="waypoint_nav" type="waypoint_nav.py" output="screen">
-   <rosparam command="load" file="$(find egg_hunter)/src/scripts/dataset/1/waypoints.yaml" ns="patrolling"/>
+   <!--<rosparam command="load" file="$(find egg_hunter)/src/scripts/dataset/1/waypoints.yaml" ns="patrolling"/>-->
  </node>
--->
- <param name="use_gui" value="true"/>
- <arg name="config" default="gmapping" />
- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jackal_viz)/rviz/$(arg config).rviz" />
+  <!-- Run Rviz with gmapping configuration-->
+  <param name="use_gui" value="true"/>
+  <arg name="config" default="egghunt" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find egg_hunter)/src/scripts/rvizconfig/$(arg config).rviz" />
 
 </launch>
