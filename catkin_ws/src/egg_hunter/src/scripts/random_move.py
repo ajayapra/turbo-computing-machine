@@ -7,6 +7,7 @@ import random
 import tf
 import os
 import numpy
+import roslaunch
 from tf import TransformListener
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from visualization_msgs.msg import MarkerArray, Marker
@@ -99,10 +100,19 @@ class RandomMove(object):
 
             rospy.loginfo('Waypoints: %s', waypoints)
             rospy.loginfo('Dumping waypoints')
-            os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-
-            os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+            #os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+            #os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+            os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
+            rospy.loginfo('Path: %s',)
             rospy.loginfo('Waypoints dumped')
+            package ='map_server'
+            executable ='map_saver'
+            # node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
+            # launch = roslaunch.scriptapi.ROSLaunch()
+            # launch.start()
+            # process = launch.launch(node)
+            # while process.is_alive():
+            #     pass
 
             rospy.signal_shutdown("Execution timer expired")
         if (self.keyMsg == 's'):
@@ -145,7 +155,7 @@ class RandomMove(object):
             rospy.loginfo("Array Length %d", len(self.saved_coord))
 
             rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
-            
+
 
 
             self.keyMsg = ""
