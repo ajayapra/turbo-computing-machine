@@ -152,7 +152,7 @@ Visualization Manager:
       Max Color: 255; 255; 255
       Max Intensity: 999999
       Min Color: 0; 0; 0
-      Min Intensity: -4.74645e-32
+      Min Intensity: 1.78648e+25
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -208,16 +208,8 @@ Visualization Manager:
       Update Topic: /twist_marker_server/update
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
-      Marker Topic: /navigation/patrolling/viz_waypoints_array
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /patrolling/viz_waypoints_array
+      Marker Topic: /navigation/patrolling/viz_waypoints_array
       Name: MarkerArray
       Namespaces:
         patrolling: true
