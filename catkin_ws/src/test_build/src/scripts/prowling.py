@@ -18,6 +18,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped, Vector3
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import *
+from ar_track_alvar_msgs.msg import AlvarMarkers
 
 import cv2
 import cv_bridge
@@ -211,9 +212,14 @@ class get_waypoint(smach.State):
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
 
+    def marker_callback(self, data):
+        global alvar_num
+        alvar_num = data.markers[0].id
+
     def execute(self, userdata):
         global temp_waypoint
         #define alvar subscribe and callback
+        rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
         self.pBase.header.frame_id = "/base_link";
         self.pBase.pose.position.x = 0.0;
         self.pBase.pose.position.y = 0.0;
