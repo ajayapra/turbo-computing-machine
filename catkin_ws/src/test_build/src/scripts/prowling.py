@@ -29,18 +29,20 @@ temp_waypoint = []
 saved_coord = []
 alvar_num = 0
 keyMsg = ""
+viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
+                               MarkerArray, queue_size=10)
 
 def publish_markers():
     markers = []
     global waypoints
+    global viz_pub
     for i, wp in enumerate(waypoints):
         temp = Marker()
-
+        rospy.loginfo('Visualizing Waypoints')
         temp.header = wp.target_pose.header
         temp.id = i
         temp.ns = "patrolling"
         temp.action = Marker.ADD
-
         temp.type = Marker.ARROW
         temp.pose = wp.target_pose.pose
         temp.scale.x = 0.75
@@ -51,8 +53,6 @@ def publish_markers():
         temp.color.g = 0.5
         temp.color.b = 0.5
         markers.append(temp)
-        viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
-                                       MarkerArray, queue_size=10)
         viz_pub.publish(markers=markers)
 
 class mapping(smach.State):
@@ -189,6 +189,10 @@ class mapping(smach.State):
         rospy.loginfo('In execute')
         self.rate = rospy.Rate(self.ref_rate)
         while not(keyMsg == 's' or keyMsg == 't'):
+            if ( keyMsg == 'h'):
+                self.haltcount = self.haltcount + 1
+                self.halt = (-1)**(self.haltcount)+self.halt
+                keyMsg = ""
             self._move_bot()
             self.rate.sleep()
         if ( keyMsg == 's'):
@@ -221,13 +225,15 @@ class get_waypoint(smach.State):
 
 class check_waypoint(smach.State):
     def __init__(self):
+        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         smach.State.__init__(self,outcomes=['savepoint_success'])
         rospy.loginfo('In check_waypoint smach state')
         global temp_waypoint
         global alvar_num
+        global waypoints
         #comment on implementing alvar tags - Publisher subscriber
         #for recieving alvar tag num
-        alvar_num = alvar_num + 1
+
 
     def execute(self, userdata):
         rospy.loginfo('checking waypoint')
@@ -236,24 +242,35 @@ class check_waypoint(smach.State):
         global alvar_num
         global keyMsg
         global saved_coord
+        #Comment for actual alvar tags
+        alvar_num = alvar_num + 1
         #Check saved_coord:alavr num with temp_waypoint: alvar num
         #push only if not present   rospy.loginfo('In check_waypoint smach state')
         # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
-        # for wp in self.saved_coord:
-        #     if wp[3]==temp_waypoint[3]:
-        #         alvar_tag_found_flag = 1
-        # if alvar_tag_found_flag != 1:
-        #     self.saved_coord.append(self.saved_coord.append(temp_waypoint))
-        #     alvar_tag_found_flag = 0
-        # alvar_num = alvar_num + 1
-
-        #
+        for wp in saved_coord:
+             if wp[4]==alvar_num:
+                 alvar_tag_found_flag = 1
+        if alvar_tag_found_flag != 1:
+            saved_coord.append(temp_waypoint)
+            alvar_tag_found_flag = 0
+            temp = MoveBaseGoal()
+            temp.target_pose.header.frame_id = 'map'
+            temp.target_pose.pose.position.x = temp_waypoint[0]
+            temp.target_pose.pose.position.y = temp_waypoint[1]
+            temp.target_pose.pose.position.z = 0
+            temp.target_pose.pose.orientation.x = 0
+            temp.target_pose.pose.orientation.y = 0
+            temp.target_pose.pose.orientation.z = temp_waypoint[2]
+            temp.target_pose.pose.orientation.w = temp_waypoint[3]
+            waypoints.append(temp)
         #Turn robot 180 for a finite time
-        #
-
+        timeNow = time.time()
+        while (time.time() - timeNow < 20.8):
+            linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+            angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.3))
+            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
         #
         rospy.set_param('waypoints', numpy.array(saved_coord).tolist())
-        #
         keyMsg = ""
         return 'savepoint_success'
 #
