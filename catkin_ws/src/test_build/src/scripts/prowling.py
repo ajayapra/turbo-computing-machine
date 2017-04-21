@@ -24,12 +24,11 @@ import cv_bridge
 import argparse
 from sensor_msgs.msg import Image
 
-
-global waypoints = []
-global temp_waypoint = []
-global saved_coord = []
-global alvar_num = 0
-global keyMsg = ""
+waypoints = []
+temp_waypoint = []
+saved_coord = []
+alvar_num = 0
+keyMsg = ""
 
 def publish_markers():
     markers = []
@@ -59,6 +58,7 @@ def publish_markers():
 class mapping(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['bunny_found', 'terminate'])
+        #smach.State.__init__(self, outcomes=['bunny_found'])
         rospy.loginfo('In mapping smach state')
         self.angular_min = 0
         self.angular_max = 0
@@ -84,10 +84,10 @@ class mapping(smach.State):
         self.side_delta  = 15
         self.side_thresh = 1.35
         self.scale = 1
-        self.keyMsg = ""
+        #self.keyMsg = ""
         self.timeout = None
         self.ref_rate =50
-        self.state_transition_flag =
+        self.state_transition_flag = 0
         #Define timeout
         if self.timeout:
             self.timeout = time.time() + timeout
@@ -98,7 +98,8 @@ class mapping(smach.State):
         rospy.loginfo("Gonna Navigate!")
 
     def key_callback(self, data):
-        self.keyMsg = data.data
+        global keyMsg
+        keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
 
@@ -184,15 +185,17 @@ class mapping(smach.State):
         rospy.loginfo('Published Twist')
 
     def execute(self):
+        global keyMsg
+        rospy.loginfo('In execute')
         self.rate = rospy.Rate(self.ref_rate)
-        while not(self.keyMsg == 's' or self.keyMsg == 't'):
+        while not(keyMsg == 's' or keyMsg == 't'):
             self._move_bot()
             self.rate.sleep()
-        if ( self.keyMsg == 's'):
-            rospy.loginfo('self.keyMsg == s')
+        if ( keyMsg == 's'):
+            rospy.loginfo('keyMsg == s')
             return 'bunny_found'
-	    else:
-            rospy.loginfo('self.keyMsg == t')
+        else:
+            rospy.loginfo('keyMsg == t')
             return 'terminate'
 
 class get_waypoint(smach.State):
@@ -204,9 +207,8 @@ class get_waypoint(smach.State):
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
 
-    def execute(self, userdata):
+    def execute(self):
         global temp_waypoint
-        global alvar_num
         #define alvar subscribe and callback
         self.pBase.header.frame_id = "/base_link";
         self.pBase.pose.position.x = 0.0;
@@ -221,39 +223,52 @@ class check_waypoint(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['savepoint_success'])
         rospy.loginfo('In check_waypoint smach state')
-        #comment on implementing alvar taga
+        global temp_waypoint
+        global alvar_num
+        #comment on implementing alvar tags - Publisher subscriber
+        #for recieving alvar tag num
         alvar_num = alvar_num + 1
+
+    def execute(self):
+        rospy.loginfo('checking waypoint')
+        alvar_tag_found_flag=0
+        global temp_waypoint
+        global alvar_num
+        #Check saved_coord:alavr num with temp_waypoint: alvar num
+        #push only if not present   rospy.loginfo('In check_waypoint smach state')
+        # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
+        # for wp in self.saved_coord:
+        #     if wp[3]==temp_waypoint[3]:
+        #         alvar_tag_found_flag = 1
+        # if alvar_tag_found_flag != 1:
+        #     self.saved_coord.append(self.saved_coord.append(temp_waypoint))
+        #     alvar_tag_found_flag = 0
+        # alvar_num = alvar_num + 1
+
+        #
+        #Turn robot 180 for a finite time
+        #
 
         #
         rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
         #
-
-    def execute(self, userdata):
-        rospy.loginfo('checking waypoint')
-        ####
-        #Check saved_coord:alavr num with temp_waypoint: alvar num
-        #push only if not present   rospy.loginfo('In check_waypoint smach state')
-        ##clear keyMsg
-        #Turn robot 180 for a finite time
-        ####
-        # Subscribe to waypoint message and get the waypoint
-
+        keyMsg = ""
         return 'savepoint_success'
-
+#
 class terminate(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['terminate_success'])
         rospy.loginfo('In terminate smach state')
-        #Sae maps and waypoints, and terminate
-        waypoints = rospy.get_param('waypoints')
-        rospy.loginfo('Waypoints: %s', waypoints)
-        rospy.loginfo('Dumping waypoints')
-        #os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-        #os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-        os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
-        os.system("rosrun map_server map_saver -f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
-        rospy.loginfo('Path: %s',)
-        rospy.loginfo('Waypoints dumped. Map Saved')
+        # #Sae maps and waypoints, and terminate
+        # waypoints = rospy.get_param('waypoints')
+        # rospy.loginfo('Waypoints: %s', waypoints)
+        # rospy.loginfo('Dumping waypoints')
+        # #os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+        # #os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
+        # os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
+        # os.system("rosrun map_server map_saver -f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
+        # rospy.loginfo('Path: %s',)
+        # rospy.loginfo('Waypoints dumped. Map Saved')
         #package ='map_server'
         #executable ='map_saver'
         #node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/map")
@@ -263,7 +278,7 @@ class terminate(smach.State):
         #while process.is_alive():
         #    pass
 
-    def execute(self, userdata):
+    def execute(self):
         rospy.loginfo('In Terminate Success')
         return 'terminate_success'
 
@@ -286,7 +301,8 @@ def main():
             transitions={'savepoint_success':'mapping'})
 
         smach.StateMachine.add('terminate', terminate(),
-            transitions={'terminate_success':'success'})
+            transitions={'terminate_success':'mapping_sm_init'})
+
 
         # smach.StateMachine.add('handle_error_state', handle_error_state(),
         #     transitions={'error_handling_done':'handle_error_state'})
