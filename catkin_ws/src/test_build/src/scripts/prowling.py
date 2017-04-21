@@ -282,29 +282,24 @@ class check_waypoint(smach.State):
 #
 class terminate(smach.State):
     def __init__(self):
+        global waypoints
         smach.State.__init__(self,outcomes=['terminate_success'])
         rospy.loginfo('In terminate smach state')
-        # #Sae maps and waypoints, and terminate
-        # waypoints = rospy.get_param('waypoints')
-        # rospy.loginfo('Waypoints: %s', waypoints)
-        # rospy.loginfo('Dumping waypoints')
-        # #os.system("rosparam dump ~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-        # #os.system("rosparam dump ~/EE5900_04/turbo-computing-machine/catkin_ws/src/egg_hunter/src/waypoints/waypoints.yaml /navigation/waypoints")
-        # os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
-        # os.system("rosrun map_server map_saver -f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/SavedMap")
-        # rospy.loginfo('Path: %s',)
-        # rospy.loginfo('Waypoints dumped. Map Saved')
-        #package ='map_server'
-        #executable ='map_saver'
-        #node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/map")
-        #launch = roslaunch.scriptapi.ROSLaunch()
-        #launch.start()
-        #process = launch.launch(node)
-        #while process.is_alive():
-        #    pass
+        package ='map_server'
+        executable ='map_saver'
+        node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/map")
+        launch = roslaunch.scriptapi.ROSLaunch()
+        launch.start()
+        process = launch.launch(node)
+        while process.is_alive():
+           pass
 
     def execute(self, userdata):
         rospy.loginfo('In Terminate Success')
+        waypoints = rospy.get_param('waypoints')
+        rospy.loginfo('Waypoints: %s', waypoints)
+        rospy.loginfo('Dumping waypoints')
+        os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /waypoints")
         return 'terminate_success'
 
 def main():
