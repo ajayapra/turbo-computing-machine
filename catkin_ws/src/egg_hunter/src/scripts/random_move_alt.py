@@ -51,6 +51,7 @@ class RandomMove(object):
         self.keyMsg = ""
         self.timeout = None
         self.ref_rate =50
+	self.state_transition_flag = 0
         #Define timeout
         if self.timeout:
             self.timeout = time.time() + timeout
@@ -65,7 +66,13 @@ class RandomMove(object):
         while not(rospy.is_shutdown()):
             self._key_actions()
             self._move_bot()
+	    if (self.state_transition_flag == 1):
+		rospy.loginfo('Transitioning state')
+		rospy.signal_shutdown("Execution timer expired")
+	    else:
+		pass
             self.rate.sleep()
+
         #rospy.spin()
 
     def _publish_markers(self):
@@ -160,7 +167,7 @@ class RandomMove(object):
             #process = launch.launch(node)
             #while process.is_alive():
             #    pass
-            rospy.signal_shutdown("Execution timer expired")
+            self.state_transition_flag = 1
         if (self.keyMsg == 's'):
             pBase = PoseStamped()
             pMap = PoseStamped()
