@@ -15,7 +15,7 @@ from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from visualization_msgs.msg import MarkerArray, Marker
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped, Vector3
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import *
 
@@ -67,7 +67,7 @@ class mapping(smach.State):
         self.start_time  =  0
         self.halt = 0
         self.haltcount = 1
-        self.saved_coord = []
+        #self.saved_coord = []
         self.runcount = 0
         self.count = 0
         self.countLimit = random.randrange(25,75)
@@ -181,10 +181,10 @@ class mapping(smach.State):
 		    self.publish_msg = Twist()
 		else:
             	    self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-	        self._publish_markers()
+	        publish_markers()
         rospy.loginfo('Published Twist')
 
-    def execute(self):
+    def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
         self.rate = rospy.Rate(self.ref_rate)
@@ -207,7 +207,7 @@ class get_waypoint(smach.State):
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
 
-    def execute(self):
+    def execute(self, userdata):
         global temp_waypoint
         #define alvar subscribe and callback
         self.pBase.header.frame_id = "/base_link";
@@ -215,7 +215,7 @@ class get_waypoint(smach.State):
         self.pBase.pose.position.y = 0.0;
         self.pBase.pose.position.z = 0.0;
         self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
-        self.pMap = self.listener.transformPose("/map", pBase)
+        self.pMap = self.listener.transformPose("/map", self.pBase)
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         return 'got_waypoint'
 
@@ -229,11 +229,13 @@ class check_waypoint(smach.State):
         #for recieving alvar tag num
         alvar_num = alvar_num + 1
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('checking waypoint')
         alvar_tag_found_flag=0
         global temp_waypoint
         global alvar_num
+        global keyMsg
+        global saved_coord
         #Check saved_coord:alavr num with temp_waypoint: alvar num
         #push only if not present   rospy.loginfo('In check_waypoint smach state')
         # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
@@ -250,7 +252,7 @@ class check_waypoint(smach.State):
         #
 
         #
-        rospy.set_param('waypoints', numpy.array(self.saved_coord).tolist())
+        rospy.set_param('waypoints', numpy.array(saved_coord).tolist())
         #
         keyMsg = ""
         return 'savepoint_success'
@@ -278,7 +280,7 @@ class terminate(smach.State):
         #while process.is_alive():
         #    pass
 
-    def execute(self):
+    def execute(self, userdata):
         rospy.loginfo('In Terminate Success')
         return 'terminate_success'
 
