@@ -6,6 +6,7 @@ import roslaunch
 import sys
 import time
 import os
+from std_msgs.msg import String
 
 from   sensor_msgs.msg import Joy
 
