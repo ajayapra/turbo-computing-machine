@@ -108,7 +108,7 @@ class mapping(smach.State):
         self.angSet = float(0.0)
         ###
     
-        rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+        rospy.Subscriber("/scan", LaserScan, self._latestScan)
         rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         rospy.loginfo("Gonna Navigate!")
