@@ -111,7 +111,7 @@ class mapping(smach.State):
         if self.timeout:
             self.timeout = time.time() + timeout
         #Publications and subscriptions
-        rospy.Subscriber("/scan", LaserScan, self._latestScan)
+        rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
         rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         rospy.loginfo("Gonna Navigate!")
@@ -165,8 +165,7 @@ class mapping(smach.State):
             self.angular_acc = 1.0 * self.scale
 
             self.angular_min = 0.25 * self.scale
-            self.angular_max = 0.5
-            * self.scale
+            self.angular_max = 0.5 * self.scale
             self.linear_min  = -0.05 * self.scale
             self.linear_max  = 0 * self.scale
             self.escape_command = 1
@@ -212,7 +211,7 @@ class mapping(smach.State):
              if (self.escape_command == 1) and (self.danger_flag == 0):
                  self.danger_flag = 1
                  self.escape_command = 0
-                 self.runcount = countLimit
+                 self.runcount = self.countLimit
              else :
                  self.runcount = self.runcount + 1
                  self.pub.publish(self.publish_msg)
@@ -244,14 +243,19 @@ class mapping(smach.State):
             else :
                 self.angSet = self.randAng
                 # push Twist msgs
-                linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
-                angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
+                rospy.loginfo('linSet:%2f',self.linSet)
+                rospy.loginfo('AngSet:%2f', self.angSet)
+                self.linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
+                self.angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
 
-		if (self.halt == 1):
-		    self.publish_msg = Twist()
-		else:
-            	    self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-	        publish_markers()
+        self.publish_msg = Twist(linear=self.linear_msg, angular=self.angular_msg)
+
+        # if (self.halt == 1):
+		#     self.publish_msg = Twist()
+		# else:
+        #     self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+	    #     publish_markers()
+
         rospy.loginfo('Published Twist')
 
     def execute(self, userdata):
