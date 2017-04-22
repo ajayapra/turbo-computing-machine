@@ -14,7 +14,7 @@
     <arg name="max_track_error" default="0.2" />
     <arg name="cam_image_topic" default="/usb_cam/image_raw" />
     <arg name="cam_info_topic" default="/usb_cam/camera_info" />
-    <arg name="output_frame" default="camera" />
+    <arg name="output_frame" default="image_frame" />
        
     <!-- <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
         <remap from="image" to="/usb_cam/image_raw"/>
