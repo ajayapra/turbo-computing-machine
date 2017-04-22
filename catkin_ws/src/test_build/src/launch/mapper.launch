@@ -1,0 +1,17 @@
+<launch>
+
+  <!--- Run gmapping -->
+  <include file="$(find test_build)/src/launch/gmapping.launch" />
+
+  <!--- Run Move Base -->
+  <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
+
+ <node name="lidar" pkg="sicktoolbox_wrapper" type="sicklms" args="_port:=/dev/ttyUSB0 _baud:=38400"/>
+
+ <group ns="navigation">
+    <node pkg="test_build" name="prowling_jackal" type="prowling_jackal.py" output="screen"/>
+ </group>
+ 
+ <node pkg="test_build" name="bluetooth_pub" type="bluetooth_pub.py" output="screen"/>
+
+</launch>
