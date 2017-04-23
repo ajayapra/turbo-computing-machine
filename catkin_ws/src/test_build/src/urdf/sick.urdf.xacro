@@ -11,7 +11,7 @@
   </material>
 
   <!-- LMS291 Lidar model -->
-  <link name="laser">
+  <link name="lms291">
     <inertial>
       <mass value="4.5" />
       <origin xyz="0 0 0" />
@@ -24,7 +24,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 ${PI/1}" />
       <geometry>
-        <box size="0.155 .156 .185"/>
+        <mesh filename="package://ee5900_jackal_description/meshes/lms291_asm.stl" scale="0.001 0.001 0.001" />
       </geometry>
       <material name="blue"/>
     </visual>
@@ -39,7 +39,7 @@
 
 
   <!-- LMS291 Lidar Mount model -->
-  <link name="laser_mount">
+  <link name="lms291_mount">
     <inertial>
       <mass value="0.4" />
       <origin xyz="0 0 0" />
@@ -51,7 +51,7 @@
 
     <visual>
       <geometry>
-        <mesh filename="package://test_build/src/meshes/LidarMount.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://ee5900_jackal_description/meshes/LidarMount.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
@@ -67,14 +67,15 @@
   <!-- Link for LMS291 to Mount -->
   <joint name="lms291_to_mount" type="fixed">
     <origin xyz="0 -0.093 0.078" rpy="0 0 ${PI/(-2)}" />
-    <parent link="laser_mount"/>
-    <child link="laser"/>
+    <parent link="lms291_mount"/>
+    <child link="lms291"/>
   </joint>
 
   <!-- Link for Mount to Jackal -->
   <joint name="lms291_mount_to_jackal" type="fixed">
     <origin xyz="-0.090 0 0" rpy="0 0 ${PI/2}" />
     <parent link="front_mount"/>
-    <child link="laser_mount"/>
+    <child link="lms291_mount"/>
   </joint>
+
 </robot>
