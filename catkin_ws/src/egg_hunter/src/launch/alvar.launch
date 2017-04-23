@@ -7,11 +7,11 @@
     <param name="pixel_format" value="yuyv" />
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
-    <param name="camera_info_url" value="package://$(find egg_hunter)/src/calib/cam_calib.yml" />
+    <param name="camera_info_url" value="file:///$(find egg_hunter)/src/calib/cam_calib.yml" />
     <!-- <param name="camera_info_url" value="$(find egg_hunter)/src/calib/cam_calib.yml" /> -->
   </node>
 
-    <arg name="marker_size" default="10" />
+    <arg name="marker_size" default="12.7" />
     <arg name="max_new_marker_error" default="0.08" />
     <arg name="max_track_error" default="0.2" />
     <arg name="cam_image_topic" default="/usb_cam/image_raw" />
