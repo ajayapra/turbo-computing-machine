@@ -24,7 +24,7 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 ${PI/1}" />
       <geometry>
-        <mesh filename="package://ee5900_jackal_description/meshes/lms291_asm.stl" scale="0.001 0.001 0.001" />
+        <box size="0.155 .156 .185"/>
       </geometry>
       <material name="blue"/>
     </visual>
@@ -51,7 +51,7 @@
 
     <visual>
       <geometry>
-        <mesh filename="package://ee5900_jackal_description/meshes/LidarMount.stl" scale="0.001 0.001 0.001"/>
+        <mesh filename="package://test_build/src/meshes/LidarMount-1.stl" scale="0.001 0.001 0.001"/>
       </geometry>
       <material name="grey"/>
     </visual>
