@@ -1,0 +1,10 @@
+<launch>
+
+<!--LiDAR (URDF and wrapper)-->
+  <include file="$(find test_build)/src/launch/description.launch" />
+  <include file="$(find test_build)/src/launch/lidar.launch" />
+
+<!--PS4 Joystick-->
+  <node pkg="test_build" name="bluetooth_wrapper" type="bluetooth_pub.py" output="screen"/>
+
+</launch>

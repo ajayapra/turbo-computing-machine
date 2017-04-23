@@ -1,0 +1,12 @@
+<launch>
+
+<!--LiDAR (URDF and wrapper)-->
+  <include file="$(find test_build)/src/launch/description.launch" />
+
+
+  <!-- Run Rviz with gmapping configuration-->
+  <param name="use_gui" value="true"/>
+  <arg name="config" default="egghunt" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find egg_hunter)/src/scripts/rvizconfig/$(arg config).rviz" />
+
+</launch>
