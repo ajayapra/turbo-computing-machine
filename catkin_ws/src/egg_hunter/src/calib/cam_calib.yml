@@ -8,7 +8,7 @@ camera_matrix:
 distortion_coefficients:
   rows: 1
   cols: 5
-  data: [-0.325049412, -0.195682, 0.00596893598, 0.00730237319, -0.666]
+  data: [-0.325049, -0.195682, 0.005968, 0.007302, -0.666]
 rectification_matrix:
   rows: 3
   cols: 3
