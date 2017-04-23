@@ -1,0 +1,12 @@
+<launch>
+
+  <!--start lidar -->
+  <node name="lidar" pkg="sicktoolbox_wrapper" type="sicklms" args="_port:=/dev/ttyS0 _baud:=38400"/>
+
+  <!-- Start auto move -->
+  <node name="auto" pkg="jackal_drive" type="rand_move.py" required="true" />
+
+  <!--rosbag -->
+  <node pkg="rosbag" type="record" name="rec_tf_scan" args="-O $(find jackal_drive)/bags/nav /tf /scan"/>
+
+</launch>
