@@ -375,6 +375,8 @@ class terminate(smach.State):
     def __init__(self):
         global waypoints
         smach.State.__init__(self,outcomes=['terminate_success'])
+
+    def execute(self, userdata):
         rospy.loginfo('In terminate smach state')
         package ='map_server'
         executable ='map_saver'
@@ -384,8 +386,6 @@ class terminate(smach.State):
         process = launch.launch(node)
         while process.is_alive():
            pass
-
-    def execute(self, userdata):
         rospy.loginfo('In Terminate Success')
         waypoints = rospy.get_param('waypoints')
         rospy.loginfo('Waypoints: %s', waypoints)
