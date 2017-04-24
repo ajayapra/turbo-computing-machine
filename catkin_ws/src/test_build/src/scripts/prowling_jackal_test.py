@@ -115,10 +115,6 @@ class mapping(smach.State):
         #Define timeout
         if self.timeout:
             self.timeout = time.time() + timeout
-        #Publications and subscriptions
-        rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
-        rospy.Subscriber("/action_input", String, self.key_callback)
-=======
 	self.scan_sub = None
 	self.action_sub = None
         ###
@@ -138,7 +134,8 @@ class mapping(smach.State):
         self.action_sub.unregister()
 >>>>>>> d37ad7223aebd4cfa63483a5ca9d5638677ebe66
 
-    def _latestScan(self, data):
+    def _latestScan(self):
+        data = rospy.wait_for_message("/scan", LaserScan, timeout=None)
         def toAng(rad):
             ang = rad * 180 / 3.14159
             return ang
@@ -331,7 +328,7 @@ class mapping(smach.State):
         while not(keyMsg == 's' or keyMsg == 't'):
 <<<<<<< HEAD
 =======
-            self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+            self._latestScan()
             self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
 >>>>>>> d37ad7223aebd4cfa63483a5ca9d5638677ebe66
             if ( keyMsg == 'h'):
