@@ -32,7 +32,6 @@ alvar_num = 0
 keyMsg = ""
 viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
                                MarkerArray, queue_size=10)
-
 def publish_markers():
     markers = []
     global waypoints
@@ -119,9 +118,9 @@ class mapping(smach.State):
         keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
-	sub.unregister()
+	self.action_sub.unregister()
 
-    def _latestScan(self, data, sub):
+    def _latestScan(self, data):
         def toAng(rad):
             ang = rad * 180 / 3.14
             return ang
@@ -156,7 +155,7 @@ class mapping(smach.State):
         self.leftAve  = getMin(leftAng, leftAng + sideOffset, data)
         self.rightAve = getMin(rightAng - sideOffset, rightAng, data)
         self.frontAve = getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
-	sub.unregister()
+	self.scan_sub.unregister()
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
 
     def _move_bot(self):
@@ -272,16 +271,16 @@ class mapping(smach.State):
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
-        self.rate = rospy.Rate(self.ref_rate)
+        rate = rospy.Rate(self.ref_rate)
         while not(keyMsg == 's' or keyMsg == 't'):
-	    self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan, self.scan_sub)
-            self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback, self.action_sub)
+	    self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+            self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
             if ( keyMsg == 'h'):
                 self.haltcount = self.haltcount + 1
                 self.halt = (-1)**(self.haltcount)+self.halt
                 keyMsg = ""
             self._move_bot()
-            self.rate.sleep()
+	    rate.sleep()
         if ( keyMsg == 's'):
             rospy.loginfo('keyMsg == s')
             return 'bunny_found'
@@ -394,8 +393,9 @@ class terminate(smach.State):
         return 'terminate_success'
 
 def main():
+    rospy.loginfo('Calling init node')
     rospy.init_node("prowling_jackal")
-
+    rospy.loginfo('Init node ')
     sm = smach.StateMachine(outcomes=['mapping_sm_init'])
 
     # Open the container

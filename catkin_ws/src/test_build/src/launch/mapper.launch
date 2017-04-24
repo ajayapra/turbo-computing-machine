@@ -1,7 +1,7 @@
 <launch>
 
   <!--- Run Setup -->
-  <include file="$(find test_build)/src/launch/setup.launch" />
+  <!-- <include file="$(find test_build)/src/launch/setup.launch" /> -->
 
   <!--- Run gmapping -->
   <include file="$(find test_build)/src/launch/gmapping.launch" />
