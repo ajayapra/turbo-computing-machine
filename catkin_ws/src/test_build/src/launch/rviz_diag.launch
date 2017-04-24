@@ -3,6 +3,9 @@
 <!--LiDAR (URDF and wrapper)-->
   <include file="$(find test_build)/src/launch/description.launch" />
 
+  <!--- Run gmapping -->
+  <include file="$(find test_build)/src/launch/gmapping.launch" />
+
 
   <!-- Run Rviz with default configuration-->
   <param name="use_gui" value="true"/>

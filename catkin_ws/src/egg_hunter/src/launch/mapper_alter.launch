@@ -31,6 +31,6 @@
 
 
 <group ns="navigation">
-    <node pkg="egg_hunter" name="random_move" type="random_move_alt.py" output="screen"/>
+    <node pkg="test_build" name="prowling_jackal" type="prowling_jackal.py" output="screen"/>
 </group>
 </launch>

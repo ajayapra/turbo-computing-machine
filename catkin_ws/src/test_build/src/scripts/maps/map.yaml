@@ -1,4 +1,4 @@
-image: /home/robotics3/turbo-computing-machine/catkin_ws/src/test_build/src/scripts/maps/map.pgm
+image: /home/rsestudent/ros/turbo-computing-machine/catkin_ws/src/test_build/src/scripts/maps/map.pgm
 resolution: 0.020000
 origin: [-10.000000, -10.000000, 0.000000]
 negate: 0
