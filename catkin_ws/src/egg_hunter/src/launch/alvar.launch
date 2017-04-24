@@ -7,8 +7,7 @@
     <param name="pixel_format" value="yuyv" />
     <param name="camera_frame_id" value="usb_cam" />
     <param name="io_method" value="mmap"/>
-    <rosparam command="load" file="~/turbo-computing-machine/catkin_ws/src/egg_hunter/src/calib/cam_calib.yml" />
-    <!-- <param name="camera_info_url" value="$(find egg_hunter)/src/calib/cam_calib.yml" /> -->
+    <param name="camera_info_url" value="package://egg_hunter/src/calib/cal.yml" />
   </node>
 
     <arg name="marker_size" default="12.7" />

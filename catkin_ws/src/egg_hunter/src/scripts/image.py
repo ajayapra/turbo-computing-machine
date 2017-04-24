@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 
 img = cv2.imread('LAVAR.jpeg',1)
+#img = cv2.imread('testone.jpg',1)
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
 # Uncomment the following two lines to launch windows. 
@@ -49,84 +50,102 @@ mask = violet_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 80:
-    count = count + 1
-print('violet: ' + str(count))
+violet_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 80:
+        violet_count = violet_count + 1
+except:
+    pass
+print('violet: ' + str(violet_count))
 
 # Count number of green eggs
 mask = green_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 80:
-    count = count + 1
-print('green: ' + str(count))
+green_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 80:
+        green_count = green_count + 1
+except:
+    pass
+print('green: ' + str(green_count))
 
 # Count number of pink eggs
 mask = pink_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 80:
-    count = count + 1
-print('pink: ' + str(count))
+pink_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 80:
+        pink_count = pink_count + 1
+except:
+    pass
+print('pink: ' + str(pink_count))
 
 # Count number of blue eggs
 mask = blue_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 80:
-    count = count + 1
-print('blue: ' + str(count))
+blue_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 80:
+        blue_count = blue_count + 1
+except:
+    pass
+print('blue: ' + str(blue_count))
 
 # Count number of orange eggs
 mask = orange_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 100:
-    count = count + 1
-print('orange: ' + str(count))
+orange_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 100:
+        orange_count = orange_count + 1
+except:
+    pass
+print('orange: ' + str(orange_count))
 
-# Count number of orange eggs
+# Count number of yellow eggs
 mask = yellow_mask
 mask = cv2.erode(mask, None, iterations=3)
 mask = cv2.dilate(mask, None, iterations=6)
 #masked = cv2.bitwise_and(img, img, mask=mask)
-cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-    cv2.CHAIN_APPROX_SIMPLE)[-2]
-c = max(cnts, key=cv2.contourArea)
-((x, y), radius) = cv2.minEnclosingCircle(c)
-count = 0
-if radius > 30 and radius < 80:
-    count = count + 1
-print('yellow: ' + str(count))
+yellow_count = 0
+try:
+    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+	cv2.CHAIN_APPROX_SIMPLE)[-2]
+    c = max(cnts, key=cv2.contourArea)
+    ((x, y), radius) = cv2.minEnclosingCircle(c)
+    if radius > 30 and radius < 80:
+        yellow_count = yellow_count + 1
+except:
+    pass
+print('yellow: ' + str(yellow_count))
 
 # Show the frame to the screen and increment the frame counter.
 # Uncomment the following line to view the frame.
