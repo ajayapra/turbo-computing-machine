@@ -76,19 +76,19 @@ class joy_control(object):
             # set stop flag
             #self.stop  = True
             #publish terminating node message
-            key_pub.publish("t")
+            self.key_pub.publish("t")
 
         #Halt the Jackal
         if (sq == 1):
             rospy.loginfo("Start/Stop the Jackal...")
             # set stop flag
-            key_pub.publish("h")
+            self.key_pub.publish("h")
 
         #Save the waypoint
         if (circ == 1):
             rospy.loginfo("Save Waypoint...")
             # set stop flag
-            key_pub.publish("s")
+            self.key_pub.publish("s")
 
 
 # standard boilerplate
