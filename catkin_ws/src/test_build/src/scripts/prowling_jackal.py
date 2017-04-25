@@ -279,7 +279,7 @@ class mapping(smach.State):
         global keyMsg
         rospy.loginfo('In execute')
         rate = rospy.Rate(self.ref_rate)
-        self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+        self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
         while not rospy.is_shutdown():
             global keyMsg
             if ( keyMsg == 's'):
