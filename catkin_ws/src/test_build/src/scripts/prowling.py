@@ -283,7 +283,7 @@ class mapping(smach.State):
                     self.halt = (-1)**(self.haltcount)+self.halt
                     keyMsg = ""
                 self._move_bot()
-                self.rate.sleep()
+            self.rate.sleep()
                 
 class get_waypoint(smach.State):
     def __init__(self):
