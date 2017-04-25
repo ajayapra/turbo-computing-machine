@@ -260,7 +260,7 @@ class mapping(smach.State):
 	else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg) 
-        self.pub.publish(self.publish_msg)
+        #self.pub.publish(self.publish_msg)
 	publish_markers()
         rospy.loginfo('Published Twist')
 
@@ -274,7 +274,7 @@ class mapping(smach.State):
             if ( keyMsg == 's'):
                 rospy.loginfo('keyMsg == s')
                 return 'bunny_found'
-            elif( keyMsg == 't')::
+            elif( keyMsg == 't'):
                 rospy.loginfo('keyMsg == t')
                 return 'terminate'
             else:
