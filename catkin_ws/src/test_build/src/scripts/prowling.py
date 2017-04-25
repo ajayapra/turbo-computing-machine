@@ -271,6 +271,8 @@ class mapping(smach.State):
         rospy.loginfo('In execute')
         self.rate = rospy.Rate(self.ref_rate)
         while not(rospy.is_shutdown()):
+	    rospy.loginfo('in while loop of mapping')
+	    rospy.loginfo(keyMsg)
             if ( keyMsg == 's'):
                 rospy.loginfo('keyMsg == s')
                 return 'bunny_found'
