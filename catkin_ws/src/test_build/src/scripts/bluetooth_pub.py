@@ -26,7 +26,7 @@ class joy_control(object):
         self.key_pub = rospy.Publisher("action_input", String, queue_size=1)
         rospy.loginfo('started the publishing routine to action_input')
 
-        rate = rospy.Rate(20)
+        rate = rospy.Rate(1)
 
         rospy.loginfo('started joystick routine..')
 
