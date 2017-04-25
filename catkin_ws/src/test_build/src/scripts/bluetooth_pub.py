@@ -44,20 +44,20 @@ class joy_control(object):
         	elif self.halt:
 		    self.key_pub.publish('h')
 		    self.halt = False
-        	    self.blue_sub.unsubscribe()
-        	    rospy.sleep(1)
+        	    self.blue_sub.unregister()
+        	    rospy.sleep(0.2)
         	    self.blue_sub = rospy.Subscriber("/bluetooth_teleop/joy", Joy, self.joy_callback)
         	elif self.save_waypoint:
 		    self.key_pub.publish('s')
 		    self.save_waypoint = False
-        	    self.blue_sub.unsubscribe()
-        	    rospy.sleep(1)
+        	    self.blue_sub.unregister()
+        	    rospy.sleep(0.2)
         	    self.blue_sub = rospy.Subscriber("/bluetooth_teleop/joy", Joy, self.joy_callback)
         	elif self.terminate:
 		    self.key_pub.publish('t')
 		    self.terminate = False
-        	    self.blue_sub.unsubscribe()
-        	    rospy.sleep(1)
+        	    self.blue_sub.unregister()
+        	    rospy.sleep(0.2)
         	    self.blue_sub = rospy.Subscriber("/bluetooth_teleop/joy", Joy, self.joy_callback)
 	
         	rate.sleep()
