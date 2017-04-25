@@ -94,9 +94,8 @@ class mapping(smach.State):
             self.timeout = time.time() + timeout
         #Publications and subscriptions
         ###
-	    self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
-	    self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
-        self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
+	self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+	self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         self.rate = rospy.Rate(self.ref_rate)
         self.linear_acc  =  0.01
@@ -111,20 +110,14 @@ class mapping(smach.State):
         self.randAng = float(0.0)
         self.linSet = float(0.0)
         self.angSet = float(0.0)
-        rospy.loginfo("Gonna Navigate!")
+        ###
+	rospy.loginfo("Gonna Navigate!")
 
     def key_callback(self, data):
         global keyMsg
         keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
-
-    def marker_callback(self, data):
-        global alvar_num
-        try:
-            alvar_num = data.markers[0].id
-        except:
-            alvar_num = 0
 
     def _latestScan(self, data):
         def toAng(rad):
@@ -304,6 +297,14 @@ class get_waypoint(smach.State):
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
+        rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
+
+    def marker_callback(self, data):
+        global alvar_num
+        try:
+            alvar_num = data.markers[0].id
+        except:
+            alvar_num = 0
 
     def execute(self, userdata):
 	rospy.loginfo('In get waypoint')
