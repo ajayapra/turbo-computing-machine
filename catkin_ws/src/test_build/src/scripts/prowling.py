@@ -94,7 +94,11 @@ class mapping(smach.State):
             self.timeout = time.time() + timeout
         #Publications and subscriptions
         ###
-        self.linear_acc  =  0.01
+	self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+	self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
+        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+	self.rate = rospy.Rate(self.ref_rate)
+	self.linear_acc  =  0.01
         self.angular_acc =  0.005
         self.count_min = 25
         self.count_max = 40
@@ -107,9 +111,7 @@ class mapping(smach.State):
         self.linSet = float(0.0)
         self.angSet = float(0.0)
         ###
-    
-        
-        rospy.loginfo("Gonna Navigate!")
+	rospy.loginfo("Gonna Navigate!")
 
     def key_callback(self, data):
         global keyMsg
@@ -269,7 +271,6 @@ class mapping(smach.State):
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
-        self.rate = rospy.Rate(self.ref_rate)
         while not(rospy.is_shutdown()):
 	    rospy.loginfo('in while loop of mapping')
 	    rospy.loginfo(keyMsg)
