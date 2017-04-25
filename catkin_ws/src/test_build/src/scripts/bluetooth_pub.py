@@ -15,6 +15,9 @@ class joy_control(object):
 
     # define self routine
     def __init__(self):
+	self.save_waypoint = False
+	self.terminate = False
+	self.halt = False
 
         # define subscriber
         rospy.Subscriber("/bluetooth_teleop/joy", Joy, self.joy_callback)
@@ -23,7 +26,7 @@ class joy_control(object):
         self.key_pub = rospy.Publisher("action_input", String, queue_size=1)
         rospy.loginfo('started the publishing routine to action_input')
 
-        rate = rospy.Rate(5)
+        rate = rospy.Rate(0.5)
 
         rospy.loginfo('started joystick routine..')
 
@@ -32,10 +35,10 @@ class joy_control(object):
         self.stop  = False
 
         # configure node roslaunch api
-        package    = 'egg_hunter'
+        package    = 'test_build'
 
         ######Change Executeable here #######
-        executable = 'random_move.py'
+        executable = 'prowling.py'
         #####################################
 
         node = roslaunch.core.Node(package, executable)
@@ -46,15 +49,17 @@ class joy_control(object):
                 launch = roslaunch.scriptapi.ROSLaunch()
                 launch.start()
                 process = launch.launch(node)
-
-            # if stop flag set: shutdown main launch-file
-            if self.stop:
-                process.stop()
-
-            # reset trigger
-            self.start = False
-            self.stop  = False
+                self.start = False
+            elif self.halt:
+		self.key_pub.publish('h')
+	    elif self.save_waypoint:
+		self.key_pub.publish('s')
+	    elif self.terminate:
+		self.key_pub.publish('t')
             rate.sleep()
+            # if stop flag set: shutdown main launch-file
+            #if self.stop:
+            #    process.stop()
 
 
     # joystick callback routine
@@ -76,19 +81,25 @@ class joy_control(object):
             # set stop flag
             #self.stop  = True
             #publish terminating node message
-            self.key_pub.publish("t")
+            self.save_waypoint = False
+	    self.terminate = True
+            self.halt = False
 
         #Halt the Jackal
         if (sq == 1):
             rospy.loginfo("Start/Stop the Jackal...")
             # set stop flag
-            self.key_pub.publish("h")
+            self.save_waypoint = False
+	    self.terminate = False
+            self.halt = True
 
         #Save the waypoint
         if (circ == 1):
             rospy.loginfo("Save Waypoint...")
             # set stop flag
-            self.key_pub.publish("s")
+            self.save_waypoint = True
+	    self.terminate = False
+            self.halt = False
 
 
 # standard boilerplate
