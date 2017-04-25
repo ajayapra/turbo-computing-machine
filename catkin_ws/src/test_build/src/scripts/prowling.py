@@ -94,11 +94,11 @@ class mapping(smach.State):
             self.timeout = time.time() + timeout
         #Publications and subscriptions
         ###
-	    self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
-	    self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
+	self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+	self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-	    self.rate = rospy.Rate(self.ref_rate)
-	    self.linear_acc  =  0.01
+        self.rate = rospy.Rate(self.ref_rate)
+        self.linear_acc  =  0.01
         self.angular_acc =  0.005
         self.count_min = 25
         self.count_max = 40
@@ -262,7 +262,7 @@ class mapping(smach.State):
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        #self.pub.publish(self.publish_msg)
+        self.pub.publish(self.publish_msg)
         publish_markers()
         rospy.loginfo('Published Twist')
 
@@ -272,12 +272,15 @@ class mapping(smach.State):
         global keyMsg
         rospy.loginfo('In execute')
         while not(rospy.is_shutdown()):
+	    rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
             rospy.loginfo('in while loop of mapping')
             rospy.loginfo(keyMsg)
             if ( keyMsg == 's'):
+		self.scan_sub.unsubscribe()
                 rospy.loginfo('keyMsg == s')
                 return 'bunny_found'
             elif( keyMsg == 't'):
+		self.scan_sub.unsubscribe()
                 rospy.loginfo('keyMsg == t')
                 return 'terminate'
             else:
