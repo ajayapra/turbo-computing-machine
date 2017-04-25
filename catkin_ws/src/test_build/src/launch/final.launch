@@ -1,0 +1,35 @@
+<launch>
+
+  <!--- Run Jackal description -->
+  <arg name="config" default="base" />
+
+  <param name="robot_description"
+         command="$(find jackal_description)/scripts/env_run
+                    $(find jackal_description)/urdf/configs/$(arg config)
+                    $(find xacro)/xacro $(find test_build)/src/urdf/final.urdf.xacro" />
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />  
+
+  <!-- Run Lidar-->
+  <node name="lidar" pkg="sicktoolbox_wrapper" type="sicklms" args="_port:=/dev/ttyS0 _baud:=38400 _frame_id:=lms291"/>
+
+  <!--- Run gmapping -->
+  <include file="$(find test_build)/src/launch/gmapping.launch" />
+
+  <!--- Run Move Base -->
+  <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
+
+  <!-- Run Alvar Launch-->
+  <include file="$(find test_build)/src/launch/alvar.launch" />
+
+
+  <!-- Set Sim Time Param false-->
+  <param name="use_sim_time" type="boolean" value="false" />
+
+  <!-- Launch Bluetooth-->
+ <node pkg="test_build" name="bluetooth_pub" type="bluetooth_pub.py" output="screen"/>
+
+<group ns="navigation">
+    <node pkg="test_build" name="prowling" type="prowling.py" output="screen"/>
+ </group>
+
+</launch>
