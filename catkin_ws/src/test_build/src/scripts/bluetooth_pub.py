@@ -52,10 +52,13 @@ class joy_control(object):
                 self.start = False
             elif self.halt:
 		self.key_pub.publish('h')
+		self.halt = False
 	    elif self.save_waypoint:
 		self.key_pub.publish('s')
+		self.save_waypoint = False
 	    elif self.terminate:
 		self.key_pub.publish('t')
+		self.terminate = False
             rate.sleep()
             # if stop flag set: shutdown main launch-file
             #if self.stop:
