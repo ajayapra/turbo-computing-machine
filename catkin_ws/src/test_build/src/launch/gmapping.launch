@@ -63,6 +63,4 @@
     <param name="lasamplestep" value="0.005"/>
   </node>
 
-  <!-- replay-->
-  <node pkg="drive_jackal" type="auto_replay.py" name="auto_replay" required="true" />
 </launch>
