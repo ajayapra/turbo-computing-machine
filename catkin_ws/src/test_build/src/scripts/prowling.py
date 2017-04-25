@@ -301,7 +301,7 @@ class get_waypoint(smach.State):
 
     def marker_callback(self, data):
         global alvar_num
-        if data.markers[0].id!==''
+        if data.markers[0].id!=='':
             alvar_num = data.markers[0].id
 
     def execute(self, userdata):
