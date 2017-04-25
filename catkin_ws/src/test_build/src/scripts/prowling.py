@@ -82,7 +82,7 @@ class mapping(smach.State):
         # Constants for laser averaging
         self.front_delta = 15
         self.side_ang    = 30
-        #self.side_delta  = 15 
+        #self.side_delta  = 15
         #self.side_thresh = 1.35
         self.scale = 0.65
         #self.keyMsg = ""
@@ -94,11 +94,11 @@ class mapping(smach.State):
             self.timeout = time.time() + timeout
         #Publications and subscriptions
         ###
-	self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
-	self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
+	    self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+	    self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-	self.rate = rospy.Rate(self.ref_rate)
-	self.linear_acc  =  0.01
+	    self.rate = rospy.Rate(self.ref_rate)
+	    self.linear_acc  =  0.01
         self.angular_acc =  0.005
         self.count_min = 25
         self.count_max = 40
@@ -175,16 +175,16 @@ class mapping(smach.State):
             #self.angular_max = 1.25 * self.scale
             self.angular_min = -0.625 * self.scale
             self.angular_max = 0.625 * self.scale
-        
+
             #self.linear_min  = 0.50 * self.scale
             #self.linear_max  = 1.0 * self.scale
-            
+
             self.linear_min  = 0.75 * self.scale
             self.linear_max  = 1.0 * self.scale
-            
+
             self.linear_acc  =  0.005 * self.scale
             self.angular_acc =  0.001 * self.scale
-    
+
             self.danger_flag = 0
 
         # Close to a wall on one side, turn to side with most time
@@ -216,7 +216,7 @@ class mapping(smach.State):
                 self.runcount = self.countLimit
             else :
                 self.runcount = self.runcount + 1
-                
+
         else :
                 self.runcount = 0
                 #self.countLimit = random.randrange(5,25)
@@ -252,28 +252,28 @@ class mapping(smach.State):
                 self.angSet = self.angSet - self.angular_acc
             else :
                 self.angSet = self.randAng
-  
-        rospy.loginfo('LinSet:: %2f, AngSet:: %2f', self.linSet, self.angSet )     
+
+        rospy.loginfo('LinSet:: %2f, AngSet:: %2f', self.linSet, self.angSet )
 
         linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
         angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
-	if (self.halt == 1):
-	    self.publish_msg = Twist()
-	else :
+        if (self.halt == 1):
+	        self.publish_msg = Twist()
+        else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg) 
+        #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.pub.publish(self.publish_msg)
-	publish_markers()
+        publish_markers()
         rospy.loginfo('Published Twist')
 
-	
+
 
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
         while not(rospy.is_shutdown()):
-	    rospy.loginfo('in while loop of mapping')
-	    rospy.loginfo(keyMsg)
+            rospy.loginfo('in while loop of mapping')
+            rospy.loginfo(keyMsg)
             if ( keyMsg == 's'):
                 rospy.loginfo('keyMsg == s')
                 return 'bunny_found'
@@ -287,7 +287,7 @@ class mapping(smach.State):
                     keyMsg = ""
                 self._move_bot()
             self.rate.sleep()
-                
+
 class get_waypoint(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['got_waypoint'])
@@ -358,7 +358,7 @@ class check_waypoint(smach.State):
         while (time.time() - timeNow < 2):
 	    linear_msg  = Vector3(x=float(-0.05), y=float(0.0), z=float(0.0))
             angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
-            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))	
+            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
         timeNow = time.time()
         while (time.time() - timeNow < 15):
             linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
@@ -422,4 +422,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
