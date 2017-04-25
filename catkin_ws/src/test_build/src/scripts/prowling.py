@@ -262,7 +262,7 @@ class mapping(smach.State):
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        self.pub.publish(self.publish_msg)
+        #self.pub.publish(self.publish_msg)
         publish_markers()
         rospy.loginfo('Published Twist')
 
@@ -302,9 +302,7 @@ class get_waypoint(smach.State):
     def marker_callback(self, data):
         global alvar_num
         try:
-
-            if data.markers[0].id!=='':
-                alvar_num = data.markers[0].id
+            alvar_num = data.markers[0].id
         except:
             alvar_num = 0
 
