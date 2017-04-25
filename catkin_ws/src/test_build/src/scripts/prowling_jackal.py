@@ -67,7 +67,7 @@ class mapping(smach.State):
         self.start_time  =  0
         self.halt = 0
         self.haltcount = 1
-        #self.saved_coord = []
+                #self.saved_coord = []
         self.runcount = 0
         self.count = 0
         self.countLimit = random.randrange(25,75)
@@ -105,23 +105,22 @@ class mapping(smach.State):
         self.randAng = float(0.0)
         self.linSet = float(0.0)
         self.angSet = float(0.0)
-	self.scan_sub = None
-	self.action_sub = None
+        self.scan_sub = None
+        self.action_sub = None
         ###
 
 
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         rospy.loginfo("Gonna Navigate!")
 
-    def key_callback(self, data, sub):
+    def key_callback(self, data):
         global keyMsg
         keyMsg = data.data
         print ("in key callback")
         rospy.loginfo("I heard key %s", data.data)
         self.action_sub.unregister()
 
-    def _latestScan(self):
-        data = rospy.wait_for_message("/front/scan", LaserScan, timeout = None)
+    def _latestScan(self, data):
         def toAng(rad):
             ang = rad * 180 / 3.14
             return ang
@@ -130,6 +129,7 @@ class mapping(smach.State):
             angSum = float(0.0)
             index = start
             while index < end :
+                rospy.loginfo('getSum loop')
                 if data.ranges[index] < 15:
                     angSum = angSum + data.ranges[index]
                 index = index + 1
@@ -156,10 +156,17 @@ class mapping(smach.State):
         self.leftAve  = getMin(leftAng, leftAng + sideOffset, data)
         self.rightAve = getMin(rightAng - sideOffset, rightAng, data)
         self.frontAve = getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
-        #self.scan_sub.unregister()
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
+        self._move_bot()
+        #self.scan_sub.unregister()
 
     def _move_bot(self):
+        global keyMsg
+        self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
+        if ( keyMsg == 'h'):
+            self.haltcount = self.haltcount + 1
+            self.halt = (-1)**(self.haltcount)+self.halt
+            keyMsg = ""
         if self.frontAve < 1 :
             #self.angular_min = 0.25 * self.scale
             self.angular_min = 0.3 * self.scale
@@ -219,16 +226,15 @@ class mapping(smach.State):
                 self.runcount = self.countLimit
             else :
                 self.runcount = self.runcount + 1
-
         else :
-                self.runcount = 0
-                #self.countLimit = random.randrange(5,25)
-                self.countLimit = random.randrange(self.count_min, self.count_max)
-                self.randLin = random.uniform(self.linear_min,self.linear_max)
-                self.randAng = random.uniform(self.angular_min,self.angular_max)
-                # push Twist msgs
-                #linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
-                #angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
+            self.runcount = 0
+            #self.countLimit = random.randrange(5,25)
+            self.countLimit = random.randrange(self.count_min, self.count_max)
+            self.randLin = random.uniform(self.linear_min,self.linear_max)
+            self.randAng = random.uniform(self.angular_min,self.angular_max)
+            # push Twist msgs
+            #linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
+            #angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
 
         rospy.loginfo('randLin: %2f, randAng: %2f',self.randLin, self.randAng )
 
@@ -260,34 +266,35 @@ class mapping(smach.State):
 
         linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
         angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
-	if (self.halt == 1):
-	    self.publish_msg = Twist()
-	else :
+        if (self.halt == 1):
+            self.publish_msg = Twist()
+        else:
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+            #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         self.pub.publish(self.publish_msg)
-	publish_markers()
+        publish_markers()
         rospy.loginfo('Published Twist')
 
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
         rate = rospy.Rate(self.ref_rate)
-        while not(keyMsg == 's' or keyMsg == 't'):
-            self._latestScan()
-            self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
-            if ( keyMsg == 'h'):
-                self.haltcount = self.haltcount + 1
-                self.halt = (-1)**(self.haltcount)+self.halt
-                keyMsg = ""
-            self._move_bot()
+        self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+        while not rospy.is_shutdown():
+            global keyMsg
+            if ( keyMsg == 's'):
+                rospy.loginfo('keyMsg == s')
+                return 'bunny_found'
+                self.scan_sub.unregister()
+            elif( keyMsg == 't'):
+                rospy.loginfo('keyMsg == t')
+                return 'terminate'
+                self.scan_sub.unregister()
             rate.sleep()
-        if ( keyMsg == 's'):
-            rospy.loginfo('keyMsg == s')
-            return 'bunny_found'
-        else:
-            rospy.loginfo('keyMsg == t')
-            return 'terminate'
+            #rospy.loginfo('check if looping in mapping execute')
+
+            #rate.sleep()
+
 
 class get_waypoint(smach.State):
     def __init__(self):
