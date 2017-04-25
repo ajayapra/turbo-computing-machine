@@ -18,7 +18,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped, Vector3
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import *
-from ar_track_alvar_msgs.msg import AlvarMarkers
+#from ar_track_alvar_msgs.msg import AlvarMarkers
 
 import cv2
 import cv_bridge
@@ -82,20 +82,33 @@ class mapping(smach.State):
         # Constants for laser averaging
         self.front_delta = 15
         self.side_ang    = 30
-        self.side_delta  = 15
-        self.side_thresh = 1.35
-        self.scale = 1
+        #self.side_delta  = 15 
+        #self.side_thresh = 1.35
+        self.scale = 0.65
         #self.keyMsg = ""
         self.timeout = None
-        self.ref_rate =50
+        self.ref_rate =100
         self.state_transition_flag = 0
         #Define timeout
         if self.timeout:
             self.timeout = time.time() + timeout
         #Publications and subscriptions
-        rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
-        rospy.Subscriber("/action_input", String, self.key_callback)
-        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        ###
+        self.linear_acc  =  0.01
+        self.angular_acc =  0.005
+        self.count_min = 25
+        self.count_max = 40
+        self.escape_command = 0
+        self.danger_flag = 0
+        self.side_delta  = 20
+        self.side_thresh = 0.875
+        self.randLin = float(0.0)
+        self.randAng = float(0.0)
+        self.linSet = float(0.0)
+        self.angSet = float(0.0)
+        ###
+    
+        
         rospy.loginfo("Gonna Navigate!")
 
     def key_callback(self, data):
@@ -139,56 +152,128 @@ class mapping(smach.State):
         self.leftAve  = getMin(leftAng, leftAng + sideOffset, data)
         self.rightAve = getMin(rightAng - sideOffset, rightAng, data)
         self.frontAve = getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
+        rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
 
     def _move_bot(self):
         if self.frontAve < 1 :
-            self.angular_min = 0.25 * self.scale
+            #self.angular_min = 0.25 * self.scale
+            self.angular_min = 0.3 * self.scale
             self.angular_max = 0.5  * self.scale
             self.linear_min  = -0.05 * self.scale
             self.linear_max  = 0 * self.scale
+            ##
+            self.linear_acc  =  1.0 * self.scale
+            self.angular_acc =  1.0 * self.scale
+            self.escape_command = 1
+            ##
 
         # All Clear, randomly drive forward with varying turn
-        elif (self.frontAve > 2) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
-            self.angular_min = -1.25 * self.scale
-            self.angular_max = 1.25 * self.scale
-            self.linear_min  = 0.50 * self.scale
+        elif (self.frontAve > 1.75) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
+            #self.angular_min = -1.25 * self.scale
+            #self.angular_max = 1.25 * self.scale
+            self.angular_min = -0.625 * self.scale
+            self.angular_max = 0.625 * self.scale
+        
+            #self.linear_min  = 0.50 * self.scale
+            #self.linear_max  = 1.0 * self.scale
+            
+            self.linear_min  = 0.75 * self.scale
             self.linear_max  = 1.0 * self.scale
+            
+            self.linear_acc  =  0.005 * self.scale
+            self.angular_acc =  0.001 * self.scale
+    
+            self.danger_flag = 0
 
         # Close to a wall on one side, turn to side with most time
         else :
+            self.linear_acc  =  0.005 * self.scale
+            self.angular_acc =  0.001 * self.scale
+            self.escape_command = 1
+
             if self.leftAve > self.rightAve :
                 self.angular_min = 0.75 * self.scale
                 self.angular_max = 1.0 * self.scale
                 self.linear_min  = 0.25 * self.scale
-                self.linear_max  = 0.75 * self.scale
+                #self.linear_max  = 0.75 * self.scale
+                self.linear_max  = 0.50 * self.scale
             else :
                 self.angular_min = -1.0 * self.scale
                 self.angular_max = -0.75 * self.scale
                 self.linear_min  = 0.25 * self.scale
-                self.linear_max  = 0.75 * self.scale
+                #self.linear_max  = 0.75 * self.scale
+                self.linear_max  = 0.50 * self.scale
                     # generate random movement mapping at random interval
-        if self.runcount < self.countLimit :
+        #if self.runcount < self.countLimit :
+        #        self.runcount = self.runcount + 1
+        #        self.pub.publish(self.publish_msg)
+        if self.runcount < self.countLimit:
+            if (self.escape_command == 1) and (self.danger_flag == 0):
+                self.danger_flag = 1
+                self.escape_command = 0
+                self.runcount = self.countLimit
+            else :
                 self.runcount = self.runcount + 1
-                self.pub.publish(self.publish_msg)
+                
         else :
                 self.runcount = 0
-                self.countLimit = random.randrange(5,25)
-                randLin = random.uniform(self.linear_min,self.linear_max)
-                randAng = random.uniform(self.angular_min,self.angular_max)
+                #self.countLimit = random.randrange(5,25)
+                self.countLimit = random.randrange(self.count_min, self.count_max)
+                self.randLin = random.uniform(self.linear_min,self.linear_max)
+                self.randAng = random.uniform(self.angular_min,self.angular_max)
                 # push Twist msgs
-                linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
-                angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
-		if (self.halt == 1):
-		    self.publish_msg = Twist()
-		else:
-            	    self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-	        publish_markers()
+                #linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
+                #angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
+
+        rospy.loginfo('randLin: %2f, randAng: %2f',self.randLin, self.randAng )
+
+        if (self.randLin > self.linSet):
+            if (self.randLin > (self.linSet + self.linear_acc)):
+                rospy.loginfo('1st if max acc exceeded')
+                self.linSet = self.linSet + self.linear_acc
+            else :
+                self.linSet = self.randLin
+
+        else :
+            if (self.randLin < (self.linSet - self.linear_acc)):
+                self.linSet = self.linSet - self.linear_acc
+            else :
+                self.linSet = self.randLin
+
+        if (self.randAng > self.angSet):
+            if (self.randAng > (self.angSet + self.angular_acc)):
+                self.angSet = self.angSet + self.angular_acc
+            else :
+                self.angSet = self.randAng
+        else :
+            if (self.randAng < (self.angSet - self.angular_acc)):
+                self.angSet = self.angSet - self.angular_acc
+            else :
+                self.angSet = self.randAng
+  
+        rospy.loginfo('LinSet:: %2f, AngSet:: %2f', self.linSet, self.angSet )     
+
+        linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
+        angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
+	if (self.halt == 1):
+	    self.publish_msg = Twist()
+	else :
+            self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+        #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg) 
+        self.pub.publish(self.publish_msg)
+	publish_markers()
         rospy.loginfo('Published Twist')
+
+	
 
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
+	self.lidar = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+        rospy.Subscriber("/action_input", String, self.key_callback)
+        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         self.rate = rospy.Rate(self.ref_rate)
+
         while not(keyMsg == 's' or keyMsg == 't'):
             if ( keyMsg == 'h'):
                 self.haltcount = self.haltcount + 1
@@ -196,6 +281,7 @@ class mapping(smach.State):
                 keyMsg = ""
             self._move_bot()
             self.rate.sleep()
+       	self.lidar.unregister()
         if ( keyMsg == 's'):
             rospy.loginfo('keyMsg == s')
             return 'bunny_found'
@@ -212,14 +298,14 @@ class get_waypoint(smach.State):
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
 
-    def marker_callback(self, data):
-        global alvar_num
-        alvar_num = data.markers[0].id
+    #def marker_callback(self, data):
+    #    global alvar_num
+    #    alvar_num = data.markers[0].id
 
     def execute(self, userdata):
         global temp_waypoint
         #define alvar subscribe and callback
-        rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
+        #rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
         self.pBase.header.frame_id = "/base_link";
         self.pBase.pose.position.x = 0.0;
         self.pBase.pose.position.y = 0.0;
@@ -270,8 +356,13 @@ class check_waypoint(smach.State):
             temp.target_pose.pose.orientation.w = temp_waypoint[3]
             waypoints.append(temp)
         #Turn robot 180 for a finite time
+	timeNow = time.time()
+        while (time.time() - timeNow < 2):
+	    linear_msg  = Vector3(x=float(-0.05), y=float(0.0), z=float(0.0))
+            angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))	
         timeNow = time.time()
-        while (time.time() - timeNow < 20.8):
+        while (time.time() - timeNow < 15):
             linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
             angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.3))
             self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
@@ -333,3 +424,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
