@@ -262,7 +262,7 @@ class mapping(smach.State):
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        self.pub.publish(self.publish_msg)
+        #self.pub.publish(self.publish_msg)
         publish_markers()
         rospy.loginfo('Published Twist')
 
