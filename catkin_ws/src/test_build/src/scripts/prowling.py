@@ -269,26 +269,22 @@ class mapping(smach.State):
     def execute(self, userdata):
         global keyMsg
         rospy.loginfo('In execute')
-	self.lidar = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
-        rospy.Subscriber("/action_input", String, self.key_callback)
-        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         self.rate = rospy.Rate(self.ref_rate)
-
-        while not(keyMsg == 's' or keyMsg == 't'):
-            if ( keyMsg == 'h'):
-                self.haltcount = self.haltcount + 1
-                self.halt = (-1)**(self.haltcount)+self.halt
-                keyMsg = ""
-            self._move_bot()
-            self.rate.sleep()
-       	self.lidar.unregister()
-        if ( keyMsg == 's'):
-            rospy.loginfo('keyMsg == s')
-            return 'bunny_found'
-        else:
-            rospy.loginfo('keyMsg == t')
-            return 'terminate'
-
+        while not(rospy.is_shutdown()):
+            if ( keyMsg == 's'):
+                rospy.loginfo('keyMsg == s')
+                return 'bunny_found'
+            elif( keyMsg == 't')::
+                rospy.loginfo('keyMsg == t')
+                return 'terminate'
+            else:
+                if ( keyMsg == 'h'):
+                    self.haltcount = self.haltcount + 1
+                    self.halt = (-1)**(self.haltcount)+self.halt
+                    keyMsg = ""
+                self._move_bot()
+                self.rate.sleep()
+                
 class get_waypoint(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['got_waypoint'])
