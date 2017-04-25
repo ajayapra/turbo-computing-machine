@@ -100,7 +100,7 @@ class mapping(smach.State):
         self.escape_command = 0
         self.danger_flag = 0
         self.side_delta  = 20
-        self.side_thresh = 0.875
+        self.side_thresh = 1
         self.randLin = float(0.0)
         self.randAng = float(0.0)
         self.linSet = float(0.0)
@@ -279,7 +279,7 @@ class mapping(smach.State):
         global keyMsg
         rospy.loginfo('In execute')
         rate = rospy.Rate(self.ref_rate)
-        self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
+        self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
         while not rospy.is_shutdown():
             global keyMsg
             if ( keyMsg == 's'):
