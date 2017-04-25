@@ -288,8 +288,6 @@ class mapping(smach.State):
 class get_waypoint(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['got_waypoint'])
-        rospy.loginfo('In get_waypoint smach state')
-        rospy.loginfo('getting waypoint')
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
@@ -299,6 +297,7 @@ class get_waypoint(smach.State):
     #    alvar_num = data.markers[0].id
 
     def execute(self, userdata):
+	rospy.loginfo('In get waypoint')
         global temp_waypoint
         #define alvar subscribe and callback
         #rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
@@ -315,7 +314,7 @@ class check_waypoint(smach.State):
     def __init__(self):
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         smach.State.__init__(self,outcomes=['savepoint_success'])
-        rospy.loginfo('In check_waypoint smach state')
+        #rospy.loginfo('In check_waypoint smach state')
         global temp_waypoint
         global alvar_num
         global waypoints
@@ -369,8 +368,10 @@ class check_waypoint(smach.State):
 #
 class terminate(smach.State):
     def __init__(self):
-        global waypoints
         smach.State.__init__(self,outcomes=['terminate_success'])
+
+    def execute(self, userdata):
+	global waypoints
         rospy.loginfo('In terminate smach state')
         package ='map_server'
         executable ='map_saver'
@@ -380,8 +381,6 @@ class terminate(smach.State):
         process = launch.launch(node)
         while process.is_alive():
            pass
-
-    def execute(self, userdata):
         rospy.loginfo('In Terminate Success')
         waypoints = rospy.get_param('waypoints')
         rospy.loginfo('Waypoints: %s', waypoints)
