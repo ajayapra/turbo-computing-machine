@@ -2,15 +2,15 @@
 
   <!--- Run Setup -->
   <!-- <include file="$(find test_build)/src/launch/setup.launch" /> -->
-
   <!--- Run gmapping -->
   <include file="$(find test_build)/src/launch/gmapping.launch" />
 
   <!--- Run Move Base -->
   <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
 
+<param name="use_sim_time" type="boolean" value="false" />
 
- <group ns="navigation">
+<group ns="navigation">
     <node pkg="test_build" name="prowling_jackal" type="prowling_jackal.py" output="screen"/>
  </group>
 
