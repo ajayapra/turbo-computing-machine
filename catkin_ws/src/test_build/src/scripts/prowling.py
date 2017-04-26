@@ -391,10 +391,10 @@ class terminate(smach.State):
         while process.is_alive():
            pass
         rospy.loginfo('In Terminate Success')
-        waypoints = rospy.get_param('/naviagtion/waypoints')
+        waypoints = rospy.get_param('/navigation/waypoints')
         rospy.loginfo('Waypoints: %s', waypoints)
         rospy.loginfo('Dumping waypoints')
-        os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /waypoints")
+        os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
         return 'terminate_success'
 
 def main():
@@ -428,3 +428,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
