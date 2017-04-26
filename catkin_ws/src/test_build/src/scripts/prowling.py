@@ -157,7 +157,7 @@ class mapping(smach.State):
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
 
     def _move_bot(self):
-        if self.frontAve < 1 :
+        if self.frontAve < 1.25 :
             #self.angular_min = 0.25 * self.scale
             self.angular_min = 0.3 * self.scale
             self.angular_max = 0.5  * self.scale
@@ -182,15 +182,15 @@ class mapping(smach.State):
             self.linear_min  = 0.75 * self.scale
             self.linear_max  = 1.0 * self.scale
 
-            self.linear_acc  =  0.005 * self.scale
-            self.angular_acc =  0.001 * self.scale
+            self.linear_acc  =  0.00005 * self.scale
+            self.angular_acc =  0.00001 * self.scale
 
             self.danger_flag = 0
 
         # Close to a wall on one side, turn to side with most time
         else :
-            self.linear_acc  =  0.005 * self.scale
-            self.angular_acc =  0.001 * self.scale
+            self.linear_acc  =  0.00005 * self.scale
+            self.angular_acc =  0.00001 * self.scale
             self.escape_command = 1
 
             if self.leftAve > self.rightAve :
