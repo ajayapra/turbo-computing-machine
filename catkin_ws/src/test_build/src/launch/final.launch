@@ -28,6 +28,9 @@
   <!-- Launch Bluetooth-->
  <node pkg="test_build" name="bluetooth_pub" type="bluetooth_pub.py" output="screen"/>
 
+  <!-- Launch Bluetooth-->
+ <node pkg="test_build" name="alvar_pub" type="alvar_pub.py" output="screen"/>
+
 <group ns="navigation">
     <node pkg="test_build" name="prowling" type="prowling.py" output="screen"/>
  </group>
