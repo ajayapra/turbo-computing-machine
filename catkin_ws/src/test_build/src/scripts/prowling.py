@@ -276,11 +276,11 @@ class mapping(smach.State):
             rospy.loginfo('in while loop of mapping')
             rospy.loginfo(keyMsg)
             if ( keyMsg == 's'):
-		self.scan_sub.unsubscribe()
+		self.scan_sub.unregister()
                 rospy.loginfo('keyMsg == s')
                 return 'bunny_found'
             elif( keyMsg == 't'):
-		self.scan_sub.unsubscribe()
+		self.scan_sub.unregister()
                 rospy.loginfo('keyMsg == t')
                 return 'terminate'
             else:
