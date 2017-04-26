@@ -202,7 +202,7 @@ class prowl(smach.State):
 
 class click_picture(smach.State):
     def __init__(self):
-        smach.State.__init__(self,outcomes=[['counting_eggs_success'])
+        smach.State.__init__(self,outcomes=['counting_eggs_success'])
         global radius
     	global x
     	global y
@@ -258,10 +258,10 @@ class click_picture(smach.State):
         self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=3)
         move_rate = rospy.Rate(100)
-        while self,move_forward:
+        while self.move_forward:
             linear_msg  = Vector3(x=float(0.2), y=float(0.0), z=float(0.0))
             angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
-    		self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+            self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
             move_rate.sleep()
 
         # cvtColor applies an adaptive threshold to an array.
@@ -428,7 +428,7 @@ def main():
         smach.StateMachine.add('terminate', terminate(),
 transitions={'terminate_success':'waypoint_nav_sm_init'})
 
-smach.StateMachine.add('click_picture', click_picture(),
+        smach.StateMachine.add('click_picture', click_picture(),
 transitions={'counting_eggs_success':'waypoint_nav_sm_init'})
         # smach.StateMachine.add('handle_error_state', handle_error_state(),
         #     transitions={'error_handling_done':'handle_error_state'})
