@@ -245,7 +245,8 @@ class get_waypoint(smach.State):
 	rospy.loginfo('In get waypoint')
         global temp_waypoint
         #define alvar subscribe and callback
-	while error = True:
+	self.error = True
+	while self.error:
 		try:
         		self.pBase.header.frame_id = "/base_link";
         		self.pBase.pose.position.x = 0.0;
@@ -253,9 +254,9 @@ class get_waypoint(smach.State):
         		self.pBase.pose.position.z = 0.0;
         		self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
         		self.pMap = self.listener.transformPose("/map", self.pBase)
-			error = False
+			self.error = False
 		except:
-			error = True
+			self.error = True
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         return 'got_waypoint'
