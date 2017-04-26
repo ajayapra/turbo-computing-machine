@@ -32,6 +32,7 @@ alvar_num = 0
 keyMsg = ""
 viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
                                MarkerArray, queue_size=10)
+bunny_counter = 0
 
 def publish_markers():
     markers = []
@@ -92,31 +93,36 @@ class mapping(smach.State):
         self.frontAve = self.getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
         # All Clear, randomly drive forward with varying turn
-        if (self.frontAve > 2) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
-            self.angular_min = 0 * self.scale
-            self.linear_min  = 0.5 * self.scale
+        if (self.frontAve > 1.75) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
+            self.angular_min = -0.625 * self.scale
+            self.angular_max = 0.625 * self.scale
+            self.linear_min  = 0.75 * self.scale
+            self.linear_max  = 1.0 * self.scale
+            self.linear_acc  =  0.00005 * self.scale
+            self.angular_acc =  0.00001 * self.scale
             self.danger_flag = 0
         elif self.frontAve > 1.1 :
+            self.linear_acc  =  0.00005 * self.scale
+            self.angular_acc =  0.00001 * self.scale
             self.escape_command = 1
-	    selector = random.randint(0,1)
-	    if selector == 1:
-            	if self.leftAve > self.rightAve :
-                	self.angular_min = 0.5*(self.leftAve - self.rightAve) * self.scale
-                	self.linear_min  = 0.125 * self.scale
-            	else :
-                	self.angular_min = -0.5*(self.rightAve - self.leftAve) * self.scale
-                	self.linear_min  = 0.125 * self.scale
-	    else:
-		if self.leftAve < self.rightAve :
-                	self.angular_min = -0.5*(self.rightAve - self.leftAve) * self.scale
-                	self.linear_min  = 0.125 * self.scale
-            	else :
-                	self.angular_min = 0.5*(self.leftAve - self.rightAve) * self.scale
-                	self.linear_min  = 0.125 * self.scale
+            if self.leftAve > self.rightAve :
+                self.angular_min = 0.75 * self.scale
+                self.angular_max = 1.0 * self.scale
+                self.linear_min  = 0.25 * self.scale
+                self.linear_max  = 0.50 * self.scale
+            else :
+                self.angular_min = -1.0 * self.scale
+                self.angular_max = -0.75 * self.scale
+                self.linear_min  = 0.25 * self.scale
+                self.linear_max  = 0.50 * self.scale
         else:
             #self.angular_min = 0.25 * self.scale
-            self.angular_min = random.randrange(-0.3, 0.3) * self.scale
-            self.linear_min  = -1 * self.scale
+            self.angular_min = 0.3 * self.scale
+            self.angular_max = 0.5  * self.scale
+            self.linear_min  = -0.05 * self.scale
+            self.linear_max  = 0 * self.scale
+            self.linear_acc  =  1.0 * self.scale
+            self.angular_acc =  1.0 * self.scale
             self.escape_command = 1
             ##
     def _move_bot(self):
@@ -133,12 +139,23 @@ class mapping(smach.State):
                 self.runcount = 0
                 #self.countLimit = random.randrange(5,25)
                 self.countLimit = random.randrange(self.count_min, self.count_max)
-                self.randLin = self.linear_min
-                self.randAng = self.angular_min
-        linear_msg  = Vector3(x=self.randLin, y=float(0.0), z=float(0.0))
-        angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.randAng)
+                self.randLin = random.uniform(self.linear_min,self.linear_max)
+                self.randAng = random.uniform(self.angular_min,self.angular_max)
+                # push Twist msgs
+                #linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
+                #angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
+
+        rospy.loginfo('randLin: %2f, randAng: %2f',self.randLin, self.randAng )
+
+        self.linSet = self.randLin
+        self.angSet = self.randAng
+
+        rospy.loginfo('LinSet:: %2f, AngSet:: %2f', self.linSet, self.angSet )
+
+        linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
+        angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
         if (self.halt == 1):
-	    self.publish_msg = Twist()
+	        self.publish_msg = Twist()
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
@@ -174,7 +191,7 @@ class mapping(smach.State):
         self.side_ang    = 30
         #self.side_delta  = 15
         #self.side_thresh = 1.35
-        self.scale = 0.65
+        self.scale = 0.5*0.65
         #self.keyMsg = ""
         self.timeout = None
         self.ref_rate =100
@@ -191,8 +208,8 @@ class mapping(smach.State):
         self.rate = rospy.Rate(self.ref_rate)
         self.linear_acc  =  0.01
         self.angular_acc =  0.005
-        self.count_min = 10
-        self.count_max = 20
+        self.count_min = 25
+        self.count_max = 40
         self.escape_command = 0
         self.danger_flag = 0
         self.side_delta  = 20
@@ -226,9 +243,9 @@ class mapping(smach.State):
             self._move_bot()
             self.rate.sleep()
 
-class get_waypoint(smach.State):
+class get_waypoint(smach.State): 
     def __init__(self):
-        smach.State.__init__(self,outcomes=['got_waypoint'])
+        smach.State.__init__(self,outcomes=['got_waypoint', 'terminate'])
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
@@ -242,27 +259,26 @@ class get_waypoint(smach.State):
             alvar_num = 0
 
     def execute(self, userdata):
+	global bunny_counter
 	rospy.loginfo('In get waypoint')
+	if bunny_counter > 3:
+            return 'terminate'
         global temp_waypoint
         #define alvar subscribe and callback
-	self.error = True
-	while self.error:
-		try:
-        		self.pBase.header.frame_id = "/base_link";
-        		self.pBase.pose.position.x = 0.0;
-        		self.pBase.pose.position.y = 0.0;
-        		self.pBase.pose.position.z = 0.0;
-        		self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
-        		self.pMap = self.listener.transformPose("/map", self.pBase)
-			self.error = False
-		except:
-			self.error = True
+        self.pBase.header.frame_id = "/base_link";
+        self.pBase.pose.position.x = 0.0;
+        self.pBase.pose.position.y = 0.0;
+        self.pBase.pose.position.z = 0.0;
+        #self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
+        self.pMap = self.listener.transformPose("/map", self.pBase)
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
+        bunny_counter = bunny_counter+ 1
         return 'got_waypoint'
 
 class check_waypoint(smach.State):
     def __init__(self):
+        self.start = True
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         smach.State.__init__(self,outcomes=['savepoint_success'])
         #rospy.loginfo('In check_waypoint smach state')
@@ -286,7 +302,7 @@ class check_waypoint(smach.State):
         #push only if not present   rospy.loginfo('In check_waypoint smach state')
         # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         for wp in saved_coord:
-             if wp[4]==alvar_num:
+             if wp[4]==alvar_num and self.start==False:
                  alvar_tag_found_flag = 1
         if alvar_tag_found_flag != 1:
             saved_coord.append(temp_waypoint)
@@ -301,6 +317,9 @@ class check_waypoint(smach.State):
             temp.target_pose.pose.orientation.z = temp_waypoint[2]
             temp.target_pose.pose.orientation.w = temp_waypoint[3]
             waypoints.append(temp)
+            if self.start == True:
+		self.start = False
+
         #Turn robot 180 for a finite time
 	timeNow = time.time()
         while (time.time() - timeNow < 2):
@@ -347,15 +366,17 @@ def main():
     # Open the container
     with sm:
         # Adding states to the container
-        smach.StateMachine.add('mapping', mapping(),
-            transitions={'bunny_found':'get_waypoint',
-                         'terminate':'terminate'})
 
         smach.StateMachine.add('get_waypoint', get_waypoint(),
-            transitions={'got_waypoint':'check_waypoint'})
+            transitions={'got_waypoint':'check_waypoint', 
+				'terminate':'terminate'})
 
         smach.StateMachine.add('check_waypoint', check_waypoint(),
             transitions={'savepoint_success':'mapping'})
+
+        smach.StateMachine.add('mapping', mapping(),
+            transitions={'bunny_found':'get_waypoint',
+                         'terminate':'terminate'})
 
         smach.StateMachine.add('terminate', terminate(),
             transitions={'terminate_success':'mapping_sm_init'})
