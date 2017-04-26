@@ -212,7 +212,7 @@ class click_picture(smach.State):
     def image_callback(self, msg):
         rospy.loginfo('counting_eggs')
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
-        img = img[200:480, 1:640]
+        img = img[200:470, 10:630]
         self.image_sb.unregister()
         # Count eggs
     def toAng(self, rad):
