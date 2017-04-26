@@ -32,6 +32,7 @@ alvar_num = 0
 keyMsg = ""
 viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
                                MarkerArray, queue_size=10)
+bunny_counter = 0
 
 def publish_markers():
     markers = []
@@ -57,10 +58,6 @@ def publish_markers():
         viz_pub.publish(markers=markers)
 
 class mapping(smach.State):
-
-
-
-
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['bunny_found', 'terminate'])
@@ -246,9 +243,9 @@ class mapping(smach.State):
             self._move_bot()
             self.rate.sleep()
 
-class get_waypoint(smach.State):
+class get_waypoint(smach.State): 
     def __init__(self):
-        smach.State.__init__(self,outcomes=['got_waypoint'])
+        smach.State.__init__(self,outcomes=['got_waypoint', 'terminate'])
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
@@ -262,21 +259,26 @@ class get_waypoint(smach.State):
             alvar_num = 0
 
     def execute(self, userdata):
+	global bunny_counter
 	rospy.loginfo('In get waypoint')
+	if bunny_counter > 3:
+            return 'terminate'
         global temp_waypoint
         #define alvar subscribe and callback
         self.pBase.header.frame_id = "/base_link";
         self.pBase.pose.position.x = 0.0;
         self.pBase.pose.position.y = 0.0;
         self.pBase.pose.position.z = 0.0;
-        self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
+        #self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
         self.pMap = self.listener.transformPose("/map", self.pBase)
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
+        bunny_counter = bunny_counter+ 1
         return 'got_waypoint'
 
 class check_waypoint(smach.State):
     def __init__(self):
+        self.start = True
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         smach.State.__init__(self,outcomes=['savepoint_success'])
         #rospy.loginfo('In check_waypoint smach state')
@@ -300,7 +302,7 @@ class check_waypoint(smach.State):
         #push only if not present   rospy.loginfo('In check_waypoint smach state')
         # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         for wp in saved_coord:
-             if wp[4]==alvar_num:
+             if wp[4]==alvar_num and self.start==False:
                  alvar_tag_found_flag = 1
         if alvar_tag_found_flag != 1:
             saved_coord.append(temp_waypoint)
@@ -315,6 +317,9 @@ class check_waypoint(smach.State):
             temp.target_pose.pose.orientation.z = temp_waypoint[2]
             temp.target_pose.pose.orientation.w = temp_waypoint[3]
             waypoints.append(temp)
+            if self.start == True:
+		self.start = False
+
         #Turn robot 180 for a finite time
 	timeNow = time.time()
         while (time.time() - timeNow < 2):
@@ -361,15 +366,17 @@ def main():
     # Open the container
     with sm:
         # Adding states to the container
-        smach.StateMachine.add('mapping', mapping(),
-            transitions={'bunny_found':'get_waypoint',
-                         'terminate':'terminate'})
 
         smach.StateMachine.add('get_waypoint', get_waypoint(),
-            transitions={'got_waypoint':'check_waypoint'})
+            transitions={'got_waypoint':'check_waypoint', 
+				'terminate':'terminate'})
 
         smach.StateMachine.add('check_waypoint', check_waypoint(),
             transitions={'savepoint_success':'mapping'})
+
+        smach.StateMachine.add('mapping', mapping(),
+            transitions={'bunny_found':'get_waypoint',
+                         'terminate':'terminate'})
 
         smach.StateMachine.add('terminate', terminate(),
             transitions={'terminate_success':'mapping_sm_init'})
