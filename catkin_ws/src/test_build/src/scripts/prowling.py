@@ -10,6 +10,9 @@ import numpy
 import roslaunch
 import smach
 import smach_ros
+import cv2
+import roslaunch
+import rospkg
 from tf import TransformListener
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from visualization_msgs.msg import MarkerArray, Marker
@@ -269,7 +272,7 @@ class mapping(smach.State):
 	    self._move_bot()
             self.rate.sleep()
 
-class get_waypoint(smach.State): 
+class get_waypoint(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=['got_waypoint', 'terminate'])
         self.pBase = PoseStamped()
@@ -301,7 +304,7 @@ class get_waypoint(smach.State):
         		#self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
         		self.pMap = self.listener.transformPose("/map", self.pBase)
 			self.error = False
-		except:	
+		except:
 			self.error = True
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
@@ -390,6 +393,23 @@ class terminate(smach.State):
         rospy.loginfo('Waypoints: %s', waypoints)
         rospy.loginfo('Dumping waypoints')
         os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
+
+        cv2.namedWindow("window1", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("window1", 640,480)
+        img = cv2.imread('../maps/map.pgm',0)
+        img = 255-img
+        kernel = numpy.ones((5,5),np.uint8)
+        dilated_map = cv2.dilate(img,kernel,iterations = 3)
+        dilated_map = 255-dilated_map
+        cv2.imwrite('../maps/dilated_map.pgm',dilated_map)
+        #cv2.imshow("window1", dilated_map)
+        #cv2.waitKey(0)
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        roslaunch.configure_logging(uuid)
+        path = rospkg.RosPack()
+        r_path = str(path.get_path("test_build"))+"/src/launch/amcl.launch"
+        launch = roslaunch.parent.ROSLaunchParent(uuid, [r_path])
+        launch.start()
         return 'terminate_success'
 
 def main():
@@ -402,7 +422,7 @@ def main():
         # Adding states to the container
 
         smach.StateMachine.add('get_waypoint', get_waypoint(),
-            transitions={'got_waypoint':'check_waypoint', 
+            transitions={'got_waypoint':'check_waypoint',
 				'terminate':'terminate'})
 
         smach.StateMachine.add('check_waypoint', check_waypoint(),
