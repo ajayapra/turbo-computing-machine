@@ -262,7 +262,7 @@ class mapping(smach.State):
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
-        #self.pub.publish(self.publish_msg)
+        self.pub.publish(self.publish_msg)
         publish_markers()
         rospy.loginfo('Published Twist')
 
@@ -391,7 +391,7 @@ class terminate(smach.State):
         while process.is_alive():
            pass
         rospy.loginfo('In Terminate Success')
-        waypoints = rospy.get_param('waypoints')
+        waypoints = rospy.get_param('/naviagtion/waypoints')
         rospy.loginfo('Waypoints: %s', waypoints)
         rospy.loginfo('Dumping waypoints')
         os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /waypoints")
