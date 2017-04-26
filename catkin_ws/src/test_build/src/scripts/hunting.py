@@ -24,12 +24,42 @@ import cv_bridge
 import argparse
 from sensor_msgs.msg import Image
 
+target = ""
+waypoints = []
+waypoint_bunny_index = None
+alvar_num = 0
+
+
+class detect_alvar(smach.State):
+    def __init__(self):
+        global alvar_num
+        smach.State.__init__(self, outcomes=['alvar_detected'])
+
+    def alvar_callback(self, data):
+        try:
+            if data.markers[0].id!=0:
+                alvar_num = data.markers[0].id
+                rospy.loginfo('alvar ID is :: %s', alvar_num)
+        except:
+            pass
+
+
+    def execute(self, userdata):
+        while not rospy.is_shutdown():
+            self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
+            if alvar_num!=0:
+                return 'alvar_detected'
+            self.alvar_sub.unregister()
+            rospy.sleep(0.02)
+        rate.sleep()
+
+
 #Navigate Waypoints State
 class prowl(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['prowl_pass'])
-        self.waypoints = []
-        self.waypoint_index = None
+        global waypoints
+        global waypoint_bunny_index
 
         rospy.init_node('waypoint_nav')
         waypoint_arr = rospy.get_param('/navigation/waypoints')
@@ -38,10 +68,11 @@ class prowl(smach.State):
         for wp in waypoint_arr:
             temp = MoveBaseGoal()
 
-            rospy.loginfo('wp[0]::%2f', wp[0]) #starting point of the course - navigate to it and detect alvar teg to set 
+            rospy.loginfo('wp[0]::%2f', wp[0]) #starting point of the course - navigate to it and detect alvar teg to set
             rospy.loginfo('wp[1]::%2f', wp[1])
             rospy.loginfo('wp[2]::%2f', wp[2])
             rospy.loginfo('wp[3]::%2f', wp[3])
+            rospy.loginfo('wp[4]::%2f', wp[4])
 
             temp.target_pose.header.frame_id = 'map'
             temp.target_pose.pose.position.x = wp[0]
@@ -49,41 +80,55 @@ class prowl(smach.State):
             temp.target_pose.pose.orientation.z = wp[2]
             temp.target_pose.pose.orientation.w = wp[3]
 
-            self.waypoints.append(temp)
+            waypoints.append(temp)
+            waypoint_bunny_index.append(wp[4])
+
+        self.mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+        self.mvbs.send_goal(waypoints[0])
+
+        # self.goal_sub = rospy.Subscriber("move_base_simple/goal", PoseStamped,
+        #                                   self._update_waypoints) #This callback should connect to camera and take a picture. Switch states here.
+
+        # for wp in len(waypoint_bunny_index):
+        #     if waypoint_bunny_index[wp] == 0:
+        #
+        #         self.mvbs.send_goal( waypoints[waypoint_bunny_index[wp])
+        #         rospy.loginfo("Waypoint to starting position::%s, waypoint_bunny_index[wp]")
+        #         self.wait_for_result()
 
 
-        rospy.loginfo("Waypoint Nav ready.")
 
     #Not needed, pop from the array each time
-    def _nearest_waypoint(self, pose):
-        if not self.waypoint_index:
-            shortest_len = float('inf')
-            shortest_len_index = 0
-            x = pose.pose.pose.position.x
-            y = pose.pose.pose.position.y
+    # def _nearest_waypoint(self, pose):
+    #     if not self.waypoint_index:
+    #         shortest_len = float('inf')
+    #         shortest_len_index = 0
+    #         x = pose.pose.pose.position.x
+    #         y = pose.pose.pose.position.y
+    #
+    #         for i, wp in enumerate(self.waypoints):
+    #             test_len = math.hypot(wp.target_pose.pose.position.x - x,
+    #                                   wp.target_pose.pose.position.y - y)
+    #             if test_len < shortest_len:
+    #                 shortest_len = test_len
+    #                 shortest_len_index = i
+    #
+    #         self.waypoint_index = shortest_len_index
 
-            for i, wp in enumerate(self.waypoints):
-                test_len = math.hypot(wp.target_pose.pose.position.x - x,
-                                      wp.target_pose.pose.position.y - y)
-                if test_len < shortest_len:
-                    shortest_len = test_len
-                    shortest_len_index = i
-
-            self.waypoint_index = shortest_len_index
-
-    def _update_waypoints(self, data):
-        latest = MoveBaseGoal(target_pose = data)
-
-        if rospy.get_param('/waypoints_nav/patrolling/update_patrol'):
-            self.waypoints.insert(self.waypoint_index, latest)
-
-            if rospy.get_param('/waypoints_nav/patrolling/save_latest'):
-                ros.set_param_raw('/waypoints_nav/patrolling/waypoints',
-                                  self.waypoints)
+    # def _update_waypoints(self, data):
+    #     latest = MoveBaseGoal(target_pose = data)
+    #
+    #     if rospy.get_param('/waypoints_nav/patrolling/update_patrol'):
+    #         self.waypoints.insert(self.waypoint_index, latest)
+    #
+    #         if rospy.get_param('/waypoints_nav/patrolling/save_latest'):
+    #             ros.set_param_raw('/waypoints_nav/patrolling/waypoints',
+    #                               self.waypoints)
 
     def _publish_markers(self):
+        global waypoints
         markers = []
-        for i, wp in enumerate(self.waypoints):
+        for i, wp in enumerate(waypoints):
             temp = Marker()
 
             temp.header = wp.target_pose.header
@@ -106,13 +151,19 @@ class prowl(smach.State):
         rospy.loginfo("Markers Published")
 
     def execute(self, userdata):
+        global alvar_num
+        global waypoints
         self.mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
 
-        self.goal_sub = rospy.Subscriber("move_base_simple/goal", PoseStamped,
-                                         self._update_waypoints) #This callback should connect to camera and take a picture. Switch states here.
+        # self.goal_sub = rospy.Subscriber("move_base_simple/goal", PoseStamped,
+        #                                  self._update_waypoints) #This callback should connect to camera and take a picture. Switch states here.
+        #
+        # self.amcl_sub = rospy.Subscriber("amcl_pose", PoseWithCovarianceStamped,
+        #                                  self._nearest_waypoint)
 
-        self.amcl_sub = rospy.Subscriber("amcl_pose", PoseWithCovarianceStamped,
-                                         self._nearest_waypoint)
+        for bi in range(0, len(waypoint_bunny_index)-1):
+            if waypoint_bunny_index[bi]==alvar_num:
+                self.target_goal = waypoints[bi]
 
         self.viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
                                        MarkerArray, queue_size=10)
@@ -123,18 +174,21 @@ class prowl(smach.State):
 
         rospy.wait_for_message("amcl_pose", PoseWithCovarianceStamped)
 
-        rospy.loginfo("Nearest waypoint is #{}".format(self.waypoint_index))
-
-        rospy.loginfo(self.waypoint_index)
-
-        rospy.loginfo(self.waypoints[self.waypoint_index])
+        # rospy.loginfo("Nearest waypoint is #{}".format(self.waypoint_index))
+        #
+        # rospy.loginfo(self.waypoint_index)
+        #
+        # rospy.loginfo(self.waypoints[self.waypoint_index])
 
         self._publish_markers()
 
-        self.mvbs.send_goal(self.waypoints[self.waypoint_index])
-        self.mvbs.wait_for_result()
-        rospy.loginfo("Nav goal met, setting another one...")
+        # self.mvbs.send_goal(self.waypoints[self.waypoint_index])
 
+        self.mvbs.send_goal(self.target_goal)
+
+        self.mvbs.wait_for_result()
+
+        rospy.loginfo("Nav goal set...")
         # if self.waypoint_index >= len(self.waypoints) - 1:
         #     forward = False
         # elif self.waypoint_index <= 0:
@@ -148,7 +202,7 @@ class prowl(smach.State):
 
 class click_picture(smach.State):
     def __init__(self):
-        smach.State.__init__(self,outcomes=[['num_eggs'])
+        smach.State.__init__(self,outcomes=['counting_eggs_success'])
         global radius
     	global x
     	global y
@@ -160,10 +214,55 @@ class click_picture(smach.State):
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         self.image_sb.unregister()
         # Count eggs
-
+    def toAng(self, rad):
+        ang = rad * 180 / 3.14
+        return ang
+    def getMin(self, start, end, data):
+        angSum = float(0.0)
+        index = start + 1
+        minScan = data.ranges[start]
+        while index < end :
+            if data.ranges[index] < minScan:
+                prev = data.ranges[index]
+            index = index + 1
+        return minScan
+    def _latestScan(self, data):
+            #LaserScan Stuff
+        zeroAng    = int((((abs(data.angle_min) + abs(data.angle_max)) / data.angle_increment) / 2) - 1)
+        leftAng    = zeroAng + int(self.side_ang / self.toAng(data.angle_increment))
+        rightAng   = zeroAng - int(self.side_ang / self.toAng(data.angle_increment))
+        sideOffset = int(self.side_delta / self.toAng(data.angle_increment))
+        zeroOffset = int(self.front_delta / self.toAng(data.angle_increment))
+        # Compute averages for left, right, and front laser scan spans
+        self.leftAve  = self.getMin(leftAng, leftAng + sideOffset, data)
+        self.rightAve = self.getMin(rightAng - sideOffset, rightAng, data)
+        self.frontAve = self.getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
+        rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
+        # All Clear, randomly drive forward with varying turn
+        if (self.frontAve > 0.8) and (self.leftAve > 0.8) and (self.rightAve > 0.8):
+            self.move_forward = True
+        else:
+            self.move_forward = False
 
     def execute(seld, userdata):
+        #laser averaging
+        self.leftAve  = 0
+        self.rightAve = 0
+        self.frontAve = 0
+        # Constants for laser averaging
+        self.front_delta = 15
+        self.side_ang    = 30
+        self.side_delta  = 20
+        self.move_forward = False
+        self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
         self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
+        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=3)
+        move_rate = rospy.Rate(100)
+        while self.move_forward:
+            linear_msg  = Vector3(x=float(0.2), y=float(0.0), z=float(0.0))
+            angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+            self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+            move_rate.sleep()
 
         # cvtColor applies an adaptive threshold to an array.
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -172,6 +271,7 @@ class click_picture(smach.State):
         green_upper_range = np.array([100, 255, 255], dtype=np.uint8)
 
         # Orange threshold
+
         orange_lower_range = np.array([7, 100, 100], dtype=np.uint8)
         orange_upper_range = np.array([29, 255, 255], dtype=np.uint8)
 
@@ -307,29 +407,7 @@ class click_picture(smach.State):
         #print radius
         print('yellow: ' + str(yellow_count))
 
-        return 'num_eggs'
-
-class terminate(smach.State):
-    def __init__(self):
-        smach.State.__init__(self,outcomes=['terminate_success'])
-
-    def execute(self, userdata):
-	global waypoints
-        #rospy.loginfo('In terminate smach state')
-        #package ='map_server'
-        #executable ='map_saver'
-        #node = roslaunch.core.Node(package, executable, args="-f "+str(os.path.dirname(os.path.realpath(__file__)))+"/maps/map")
-        #launch = roslaunch.scriptapi.ROSLaunch()
-        #launch.start()
-        #process = launch.launch(node)
-        #while process.is_alive():
-        #   pass
-        #rospy.loginfo('In Terminate Success')
-        #waypoints = rospy.get_param('/navigation/waypoints')
-        #rospy.loginfo('Waypoints: %s', waypoints)
-        #rospy.loginfo('Dumping waypoints')
-        #os.system("rosparam dump "+str(os.path.dirname(os.path.realpath(__file__)))+"/waypoints/waypoints.yaml /navigation/waypoints")
-        return 'terminate_success'
+        return 'counting_eggs_success'
 
 
 def main():
@@ -340,15 +418,18 @@ def main():
     # Open the container
     with sm:
         # Adding states to the container
+
+        smach.StateMachine.add('detect_alvar', detect_alvar(),
+            transitions={'alvar_detected':'prowl'})
+
         smach.StateMachine.add('prowl', prowl(),
             transitions={'prowl_pass':'click_picture'})
 
-        smach.StateMachine.add('click_picture', click_picture(),
-transitions={'click_picture_success':'prowl'})
-    
         smach.StateMachine.add('terminate', terminate(),
 transitions={'terminate_success':'waypoint_nav_sm_init'})
 
+        smach.StateMachine.add('click_picture', click_picture(),
+transitions={'counting_eggs_success':'waypoint_nav_sm_init'})
         # smach.StateMachine.add('handle_error_state', handle_error_state(),
         #     transitions={'error_handling_done':'handle_error_state'})
 
