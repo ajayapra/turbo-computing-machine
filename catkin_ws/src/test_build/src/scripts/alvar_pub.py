@@ -90,9 +90,6 @@ class alvar_detect(object):
         except:
             pass
 
-        self.one = False
-        self.two = False
-        self.three = False
 
 # standard boilerplate
 if __name__ == "__main__":

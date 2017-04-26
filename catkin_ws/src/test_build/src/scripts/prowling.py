@@ -18,7 +18,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped, Vector3
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import *
-from ar_track_alvar_msgs.msg import AlvarMarkers
+#from ar_track_alvar_msgs.msg import AlvarMarkers
 
 import cv2
 import cv_bridge
@@ -156,8 +156,12 @@ class mapping(smach.State):
         angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
         if (self.halt == 1):
 	        self.publish_msg = Twist()
+	elif(self.Rotate == 1):
+		linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+        	angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.spinvel)
+		self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         else :
-            self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
+            	self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         self.pub.publish(self.publish_msg)
         #self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -218,7 +222,11 @@ class mapping(smach.State):
         self.randAng = float(0.0)
         self.linSet = float(0.0)
         self.angSet = float(0.0)
-        ###
+        ###spin stuff
+	self.Rotate = 0
+	self.spinvel= 0
+	self.count = 0 #Every 10 seconds
+	self.spincount = 0
 	rospy.loginfo("Gonna Navigate!")
 
         global keyMsg
@@ -240,7 +248,25 @@ class mapping(smach.State):
                     self.haltcount = self.haltcount + 1
                     self.halt = (-1)**(self.haltcount)+self.halt
                     keyMsg = ""
-            self._move_bot()
+            self.count += 1
+	    if self.count > 1000:
+		if self.spincount == 0: #turn 0.785 rad
+			rospy.loginfo('Entering spin routine')
+			rand = random.randint(0,1)
+			self.spinvel = rand*0.3925 - (1-rand)*0.3925
+			self.Rotate = 1
+			self.spincount += 1
+		elif self.spincount > 600:
+			rospy.loginfo('Exiting spin routine')
+			self.Rotate = 0
+			self.spincount = 0
+			self.count = 0
+		else:
+			if self.spincount == 200:
+				self.spinvel = -self.spinvel
+			rospy.loginfo('Entering spin routine')
+			self.spincount +=1
+	    self._move_bot()
             self.rate.sleep()
 
 class get_waypoint(smach.State): 
@@ -249,7 +275,7 @@ class get_waypoint(smach.State):
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
-        rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
+        #rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.marker_callback)
 
     def marker_callback(self, data):
         global alvar_num
@@ -323,23 +349,25 @@ class check_waypoint(smach.State):
             temp.target_pose.pose.orientation.z = temp_waypoint[2]
             temp.target_pose.pose.orientation.w = temp_waypoint[3]
             waypoints.append(temp)
-            if self.start == True:
-		self.start = False
+
 
         #Turn robot 180 for a finite time
-	timeNow = time.time()
-        while (time.time() - timeNow < 2):
-	    linear_msg  = Vector3(x=float(-0.05), y=float(0.0), z=float(0.0))
-            angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
-            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
-        timeNow = time.time()
-        while (time.time() - timeNow < 15):
-            linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
-            angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.3))
-            self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
+	if self.start == False:
+		timeNow = time.time()
+        	while (time.time() - timeNow < 2):
+	    		linear_msg  = Vector3(x=float(-0.1), y=float(0.0), z=float(0.0))
+            		angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+            		self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
+        	timeNow = time.time()
+        	while (time.time() - timeNow < 10):
+            		linear_msg  = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
+            		angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.314))
+            		self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
         #
         rospy.set_param('waypoints', numpy.array(saved_coord).tolist())
         keyMsg = ""
+	if self.start == True:
+		self.start = False
         return 'savepoint_success'
 #
 class terminate(smach.State):
