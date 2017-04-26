@@ -294,8 +294,8 @@ class get_waypoint(smach.State):
         global bunny_counter
         rospy.loginfo('In get waypoint')
         rospy.loginfo('##################Bunny Counter::%d', bunny_counter)
-        if bunny_counter > 4:
-            rospy.loginfo('bunny_counter > 4:::')
+        if bunny_counter == 4:
+            rospy.loginfo('bunny_counter == 4:::')
             return 'terminate'
         global temp_waypoint
         # define alvar subscribe and callback
@@ -314,12 +314,13 @@ class get_waypoint(smach.State):
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x, self.pMap.pose.position.y, self.pMap.pose.orientation.z,
                          self.pMap.pose.orientation.w, alvar_num]
-        bunny_counter = bunny_counter + 1
+
         return 'got_waypoint'
 
 
 class check_waypoint(smach.State):
     def __init__(self):
+        global bunny_counter
         self.start = True
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         smach.State.__init__(self, outcomes=['savepoint_success'])
@@ -337,6 +338,7 @@ class check_waypoint(smach.State):
         global alvar_num
         global keyMsg
         global saved_coord
+        global bunny_counter
         # Comment for actual alvar tags
         # alvar_num = alvar_num + 1
         # Check saved_coord:alavr num with temp_waypoint: alvar num
@@ -376,6 +378,7 @@ class check_waypoint(smach.State):
         keyMsg = ""
         if self.start == True:
             self.start = False
+        bunny_counter = bunny_counter + 1
         return 'savepoint_success'
 
 
