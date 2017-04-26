@@ -277,7 +277,7 @@ class mapping(smach.State):
 
 class get_waypoint(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['got_waypoint', 'terminate'])
+        smach.State.__init__(self, outcomes=['got_waypoint'])
         self.pBase = PoseStamped()
         self.pMap = PoseStamped()
         self.listener = tf.TransformListener()
@@ -291,12 +291,7 @@ class get_waypoint(smach.State):
             alvar_num = 0
 
     def execute(self, userdata):
-        global bunny_counter
         rospy.loginfo('In get waypoint')
-        rospy.loginfo('##################Bunny Counter::%d', bunny_counter)
-        if bunny_counter == 4:
-            rospy.loginfo('bunny_counter == 4:::')
-            return 'terminate'
         global temp_waypoint
         # define alvar subscribe and callback
         self.error = True
@@ -311,19 +306,17 @@ class get_waypoint(smach.State):
                 self.error = False
             except:
                 self.error = True
-        publish_markers()
         temp_waypoint = [self.pMap.pose.position.x, self.pMap.pose.position.y, self.pMap.pose.orientation.z,
                          self.pMap.pose.orientation.w, alvar_num]
 
         return 'got_waypoint'
-
 
 class check_waypoint(smach.State):
     def __init__(self):
         global bunny_counter
         self.start = True
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-        smach.State.__init__(self, outcomes=['savepoint_success'])
+        smach.State.__init__(self, outcomes=['savepoint_success', 'terminate'])
         # rospy.loginfo('In check_waypoint smach state')
         global temp_waypoint
         global alvar_num
@@ -340,7 +333,7 @@ class check_waypoint(smach.State):
         global saved_coord
         global bunny_counter
         # Comment for actual alvar tags
-        # alvar_num = alvar_num + 1
+        #alvar_num = alvar_num + 1
         # Check saved_coord:alavr num with temp_waypoint: alvar num
         # push only if not present   rospy.loginfo('In check_waypoint smach state')
         # temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
@@ -348,6 +341,7 @@ class check_waypoint(smach.State):
             if wp[4] == alvar_num and self.start == False:
                 alvar_tag_found_flag = 1
         if alvar_tag_found_flag != 1:
+            bunny_counter = bunny_counter + 1
             saved_coord.append(temp_waypoint)
             alvar_tag_found_flag = 0
             temp = MoveBaseGoal()
@@ -369,7 +363,7 @@ class check_waypoint(smach.State):
                 angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
                 self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
             timeNow = time.time()
-            while (time.time() - timeNow < 10):
+            while (time.time() - timeNow < 5):
                 linear_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.0))
                 angular_msg = Vector3(x=float(0.0), y=float(0.0), z=float(0.314))
                 self.pub.publish(Twist(linear=linear_msg, angular=angular_msg))
@@ -378,8 +372,13 @@ class check_waypoint(smach.State):
         keyMsg = ""
         if self.start == True:
             self.start = False
-        bunny_counter = bunny_counter + 1
-        return 'savepoint_success'
+        rospy.loginfo('##################Bunny Counter::%d', bunny_counter)
+        publish_markers()
+        if bunny_counter == 4:
+            rospy.loginfo('bunny_counter == 4:::')
+            return 'terminate'
+        else:
+            return 'savepoint_success'
 
 
 #
@@ -435,11 +434,10 @@ def main():
         # Adding states to the container
 
         smach.StateMachine.add('get_waypoint', get_waypoint(),
-                               transitions={'got_waypoint': 'check_waypoint',
-                                            'terminate': 'terminate'})
+                               transitions={'got_waypoint': 'check_waypoint'})
 
         smach.StateMachine.add('check_waypoint', check_waypoint(),
-                               transitions={'savepoint_success': 'mapping'})
+                               transitions={'savepoint_success': 'mapping', 'terminate': 'terminate'})
 
         smach.StateMachine.add('mapping', mapping(),
                                transitions={'bunny_found': 'get_waypoint',
