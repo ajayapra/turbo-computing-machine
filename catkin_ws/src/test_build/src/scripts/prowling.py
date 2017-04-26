@@ -290,7 +290,9 @@ class get_waypoint(smach.State):
     def execute(self, userdata):
 	global bunny_counter
 	rospy.loginfo('In get waypoint')
+    rospy.loginfo('############Bunny Counter#######:::::%s', bunny_counter)
 	if bunny_counter > 4:
+            rospy.loginfo('in bunny_counter > 4')
             return 'terminate'
         global temp_waypoint
         #define alvar subscribe and callback
