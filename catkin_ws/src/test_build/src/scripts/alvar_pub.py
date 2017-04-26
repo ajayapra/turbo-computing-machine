@@ -30,50 +30,62 @@ class alvar_detect(object):
         self.two = False
         self.three = False
 
-        while not rospy.is_shotdown():
+        while not rospy.is_shutdown():
             if self.one:
                 self.alvar_pub.publish('1')
                 self.one = False
                 self.alvar_sub.unregister()
-                rospy.sleep(0.2)
+                rospy.sleep(0.02)
                 self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
 
             elif self.two:
                 self.alvar_pub.publish('2')
                 self.two = False
                 self.alvar_sub.unregister()
-                rospy.sleep(0.2)
+                rospy.sleep(0.02)
                 self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
 
             elif self.three:
                 self.alvar_pub.publish('3')
                 self.three = False
                 self.alvar_sub.unregister()
-                rospy.sleep(0.2)
+                rospy.sleep(0.02)
                 self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
+           
+            else:
+                rospy.loginfo('No alvar detected')
 
             rate.sleep()
 
     # alvar callback routine
     def alvar_callback(self, data):
-        if data.markers[0].id == 1:
-            rospy.loginfo('alvar ID is one'
-            self.one = True
-            self.two = False
-            self.three = False
-            
-        if data.markers[0].id == 2:
-            rospy.loginfo('alvar ID is two'
-            self.one = False
-            self.two = True
-            self.three = False
-            
-        if data.markers[0].id == 3:
-            rospy.loginfo('alvar ID is three'
-            self.one = False
-            self.two = False
-            self.three = True
-            
+        try:
+            if data.markers[0].id == 1:
+                rospy.loginfo('alvar ID is one')
+                self.one = True
+                self.two = False
+                self.three = False
+        except:
+            pass
+        
+        try:    
+            if data.markers[0].id == 2:
+                rospy.loginfo('alvar ID is two')
+                self.one = False
+                self.two = True
+                self.three = False
+        except:
+            pass
+        
+        try:    
+            if data.markers[0].id == 3:
+                rospy.loginfo('alvar ID is three')
+                self.one = False
+                self.two = False
+                self.three = True
+        except:
+            pass
+    
 # standard boilerplate
 if __name__ == "__main__":
     try:
