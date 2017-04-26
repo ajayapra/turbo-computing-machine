@@ -265,12 +265,18 @@ class get_waypoint(smach.State):
             return 'terminate'
         global temp_waypoint
         #define alvar subscribe and callback
-        self.pBase.header.frame_id = "/base_link";
-        self.pBase.pose.position.x = 0.0;
-        self.pBase.pose.position.y = 0.0;
-        self.pBase.pose.position.z = 0.0;
-        #self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
-        self.pMap = self.listener.transformPose("/map", self.pBase)
+	self.error = True
+	while self.error:
+		try:
+        		self.pBase.header.frame_id = "/base_link";
+        		self.pBase.pose.position.x = 0.0;
+        		self.pBase.pose.position.y = 0.0;
+        		self.pBase.pose.position.z = 0.0;
+        		#self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
+        		self.pMap = self.listener.transformPose("/map", self.pBase)
+			self.error = False
+		except:	
+			self.error = True
         publish_markers()
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         bunny_counter = bunny_counter+ 1
