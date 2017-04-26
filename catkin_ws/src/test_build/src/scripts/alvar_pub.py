@@ -90,6 +90,15 @@ class alvar_detect(object):
         except:
             pass
 
+        try:
+            if data.markers[0].id == 0:
+                rospy.loginfo('alvar ID is three')
+                self.one = False
+                self.two = False
+                self.three = False
+        except:
+            pass
+
 # standard boilerplate
 if __name__ == "__main__":
     try:
