@@ -18,6 +18,7 @@ from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Pose, PoseStamped, PoseWithCovarianceStamped
 from move_base_msgs.msg	import MoveBaseGoal, MoveBaseAction
 from actionlib_msgs.msg import *
+from ar_track_alvar_msgs.msg import AlvarMarkers
 
 import cv2
 import cv_bridge
@@ -26,7 +27,7 @@ from sensor_msgs.msg import Image
 
 target = ""
 waypoints = []
-waypoint_bunny_index = None
+waypoint_bunny_index = []
 alvar_num = 0
 
 
@@ -61,8 +62,8 @@ class prowl(smach.State):
         global waypoints
         global waypoint_bunny_index
 
-        rospy.init_node('waypoint_nav')
-        waypoint_arr = rospy.get_param('/navigation/waypoints')
+        #rospy.init_node('waypoint_nav')
+        waypoint_arr = rospy.get_param('/patrolling/waypoints')
         rospy.loginfo('Printing arr:: %s', waypoint_arr)
         rospy.loginfo('Length of array:: %2f',len(waypoint_arr)-1 )
         for wp in waypoint_arr:
@@ -426,8 +427,8 @@ def main():
         smach.StateMachine.add('prowl', prowl(),
             transitions={'prowl_pass':'click_picture'})
 
-        smach.StateMachine.add('terminate', terminate(),
-transitions={'terminate_success':'waypoint_nav_sm_init'})
+        #smach.StateMachine.add('terminate', terminate(),
+#transitions={'terminate_success':'waypoint_nav_sm_init'})
 
         smach.StateMachine.add('click_picture', click_picture(),
 transitions={'counting_eggs_success':'waypoint_nav_sm_init'})

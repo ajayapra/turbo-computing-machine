@@ -1,35 +1,26 @@
 <launch>
 
-  <!-- Launch Gazebo with the specified world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="gui" value="true" />
-    <arg name="use_sim_time" value="true" />
-    <arg name="headless" value="false" />
-    <arg name="world_name" value="$(find egg_hunter)/project3.world" />
-  </include>
+  <!--- Run gmapping -->
+  <include file="$(find test_build)/src/launch/gmapping.launch" />
 
-  <include file="$(find jackal_description)/launch/description.launch">
-    <arg name="config" value="front_laser" />
-  </include>
-  <include file="$(find jackal_control)/launch/control.launch" />
-
-  <arg name="map_file" default="$(find egg_hunter)/src/scripts/maps/map.yaml"/>
-  <!--<arg name="map_file" default="$(find jackal_navigation)/maps/jackal_race.yaml"/>-->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-
- <include file="$(find jackal_navigation)/launch/include/amcl.launch"/> 
+  <!--- Run Move Base -->
   <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
- <!-- <rosparam command="load" file="$(find egg_hunter)/src/scripts/waypoints/waypoints.yaml" ns="patrolling/waypoints"/> -->
-  <rosparam command="load" file="$(find test_build)/src/scripts/waypoints/waypoints.yaml" ns="patrolling/waypoints"/>
+
+  <!-- Run Alvar Launch-->
+  <include file="$(find test_build)/src/launch/alvar.launch" />
 
 
-<!--  <node pkg="egg_hunter" name="waypoint_nav" type="waypoint_nav.py" output="screen"> -->
-<node pkg="test_build" name="hunting" type="hunting.py" output="screen">
-   <!--<rosparam command="load" file="$(find egg_hunter)/src/scripts/dataset/1/waypoints.yaml" ns="patrolling"/>-->
- </node>
-  <!-- Run Rviz with gmapping configuration-->
-  <param name="use_gui" value="true"/>
-  <arg name="config" default="egghunt" />
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find egg_hunter)/src/scripts/rvizconfig/$(arg config).rviz" />
+  <!-- Set Sim Time Param false-->
+  <param name="use_sim_time" type="boolean" value="false" />
+
+  <!-- Launch Bluetooth-->
+ <node pkg="test_build" name="bluetooth_pub" type="bluetooth_pub.py" output="screen"/>
+
+  <!-- Launch Bluetooth-->
+ <node pkg="test_build" name="alvar_pub" type="alvar_pub.py" output="screen"/>
+
+<group ns="navigation">
+    <node pkg="test_build" name="hunting" type="hunting.py" output="screen"/>
+ </group>
 
 </launch>
