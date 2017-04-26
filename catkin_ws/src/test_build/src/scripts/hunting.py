@@ -35,24 +35,31 @@ class detect_alvar(smach.State):
     def __init__(self):
         global alvar_num
         smach.State.__init__(self, outcomes=['alvar_detected'])
+        self.loopflag = True
 
     def alvar_callback(self, data):
+        global alvar_num
         try:
             if data.markers[0].id!=0:
-                alvar_num = data.markers[0].id
+                global alvar_num
+                alvar_num = 1
                 rospy.loginfo('alvar ID is :: %s', alvar_num)
+                self.loopflag = False
+                self.alvar_sub.unregister()
+                #return 'alvar_detected'
         except:
             pass
 
 
     def execute(self, userdata):
-        while not rospy.is_shutdown():
-            self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
-            if alvar_num!=0:
-                return 'alvar_detected'
-            self.alvar_sub.unregister()
-            rospy.sleep(0.02)
-        rate.sleep()
+        # global alvar_num
+        # self.alvar_sub = rospy.Subscriber('/ar_pose_marker', AlvarMarkers, self.alvar_callback)
+        # # while self.loopflag:
+        # #     rate.sleep()
+        # self.loopflag = True
+        # rospy.loginfo('transitioning state')
+        global alvar_num = 1
+        return 'alvar_detected'
 
 
 #Navigate Waypoints State
@@ -85,7 +92,7 @@ class prowl(smach.State):
             waypoint_bunny_index.append(wp[4])
 
         self.mvbs = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        self.mvbs.send_goal(waypoints[0])
+        self.mvbs.send_goal(waypoints[1])
 
         # self.goal_sub = rospy.Subscriber("move_base_simple/goal", PoseStamped,
         #                                   self._update_waypoints) #This callback should connect to camera and take a picture. Switch states here.
@@ -173,7 +180,7 @@ class prowl(smach.State):
         self.mvbs.wait_for_server()
         forward = True
 
-        rospy.wait_for_message("amcl_pose", PoseWithCovarianceStamped)
+        #rospy.wait_for_message("amcl_pose", PoseWithCovarianceStamped)
 
         # rospy.loginfo("Nearest waypoint is #{}".format(self.waypoint_index))
         #
