@@ -24,77 +24,226 @@ import cv_bridge
 import argparse
 from sensor_msgs.msg import Image
 
-class random_move(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['outcome1'])
-        self.angular_min = 0
-        self.angular_max = 0
-        self.linear_min  = 0
-        self.linear_max  = 0
-        self.start_time  =  0
-        self.listener = tf.TransformListener()
-        self.saved_coord = []
-        self.runcount = 0
-        self.count = 0
-        self.countLimit = random.randrange(25,75)
-        self.publish_msg = Twist()
-        self.waypoints = []
-        self.timeout = None
-        self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
-        self.speedCoef = [(-x ** 2 + 8100) / 10000000.0 for x in range(-90,91)]
-        self.last_speed = 0
-        self.last_turn = 0
-        self.keyTime = ""
-        self.keyMsg = ""
-
-    def execute(self):
-        rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
-        rospy.Subscriber("/lab_two_key", String, self.key_callback)
-        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-        self.viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
-                                       MarkerArray, queue_size=10)
-
-        rospy.loginfo("Ready to get out there and avoid some walls!")
-        rospy.logdebug(self.turnCoef)
-        rospy.logdebug(self.speedCoef)
-
-        if timeout:
-            self.timeout = time.time() + timeout
-        rospy.spin()
-
-class get_waypoint(smach.State):
-    def __init__(self):
-        smach.State.__init__(self,outcomes=['got_waypoint'])
-
-    def execute(self, userdata):
-        rospy.loginfo('getting waypoint')
-        return 'got_waypoint'
-
-class check_waypoint(smach.State):
-    def __init__(self):
-        smach.State.__init__(self,outcomes=['waypoint_present','add_waypoint'])
-
-    def execute(self, userdata):
-        rospy.loginfo('checking waypoint')
-        # Subscribe to waypoint message and get the waypoint
-        for i in len(waypoints):
-            if got_waypoint in waypoints:
-                return 'waypoint_present'
-            else:
-                return 'add_waypoint'
+# class random_move(smach.State):
+#     def __init__(self):
+#         smach.State.__init__(self, outcomes=['outcome1'])
+#         self.angular_min = 0
+#         self.angular_max = 0
+#         self.linear_min  = 0
+#         self.linear_max  = 0
+#         self.start_time  =  0
+#         self.listener = tf.TransformListener()
+#         self.saved_coord = []
+#         self.runcount = 0
+#         self.count = 0
+#         self.countLimit = random.randrange(25,75)
+#         self.publish_msg = Twist()
+#         self.waypoints = []
+#         self.timeout = None
+#         self.turnCoef = [(x ** 2 - 8100) / 10000000.0 for x in range(-90, 0)] + [(-x ** 2 + 8100) / 10000000.0 for x in range(0, 91)]
+#         self.speedCoef = [(-x ** 2 + 8100) / 10000000.0 for x in range(-90,91)]
+#         self.last_speed = 0
+#         self.last_turn = 0
+#         self.keyTime = ""
+#         self.keyMsg = ""
+#
+#     def execute(self):
+#         rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+#         rospy.Subscriber("/lab_two_key", String, self.key_callback)
+#         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+#         self.viz_pub = rospy.Publisher("patrolling/viz_waypoints_array",
+#                                        MarkerArray, queue_size=10)
+#
+#         rospy.loginfo("Ready to get out there and avoid some walls!")
+#         rospy.logdebug(self.turnCoef)
+#         rospy.logdebug(self.speedCoef)
+#
+#         if timeout:
+#             self.timeout = time.time() + timeout
+#         rospy.spin()
+#
+# class get_waypoint(smach.State):
+#     def __init__(self):
+#         smach.State.__init__(self,outcomes=['got_waypoint'])
+#
+#     def execute(self, userdata):
+#         rospy.loginfo('getting waypoint')
+#         return 'got_waypoint'
+#
+# class check_waypoint(smach.State):
+#     def __init__(self):
+#         smach.State.__init__(self,outcomes=['waypoint_present','add_waypoint'])
+#
+#     def execute(self, userdata):
+#         rospy.loginfo('checking waypoint')
+#         # Subscribe to waypoint message and get the waypoint
+#         for i in len(waypoints):
+#             if got_waypoint in waypoints:
+#                 return 'waypoint_present'
+#             else:
+#                 return 'add_waypoint'
 
 def click_picture(smach.State):
     def __init__(self):
         smach.State.__init__(self,outcomes=[['num_eggs'])
+        global radius
+    	global x
+    	global y
         self.bridge = cv_bridge.CvBridge()
+        self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
+
     def image_callback(self, msg):
         rospy.loginfo('counting_eggs')
-
+        img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        self.image_sb.unregister()
         # Count eggs
 
 
     def execute(seld, userdata):
         self.image_sb = rospy.Subscriber('/usb_cam/image_raw', Image, self.image_callback)
+
+        # cvtColor applies an adaptive threshold to an array.
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        # Green threshold
+        green_lower_range = np.array([60, 100, 100], dtype=np.uint8)
+        green_upper_range = np.array([100, 255, 255], dtype=np.uint8)
+
+        # Orange threshold
+        orange_lower_range = np.array([7, 100, 100], dtype=np.uint8)
+        orange_upper_range = np.array([29, 255, 255], dtype=np.uint8)
+
+        # Blue threshold
+        blue_lower_range = np.array([95, 100, 100], dtype=np.uint8)
+        blue_upper_range = np.array([112, 255, 255], dtype=np.uint8)
+
+        # Yellow threshold
+        yellow_lower_range = np.array([24, 100, 100], dtype=np.uint8)
+        yellow_upper_range = np.array([28, 255, 255], dtype=np.uint8)
+
+        # Pink threshold
+        pink_lower_range = np.array([165, 100, 100], dtype=np.uint8)
+        pink_upper_range = np.array([200, 255, 255], dtype=np.uint8)
+
+        # Violet threshold
+        violet_lower_range = np.array([128, 100, 100], dtype=np.uint8)
+        violet_upper_range = np.array([164, 255, 255], dtype=np.uint8)
+
+        # A series of dilations and erosions to remove any small blobs left
+        # in the mask.
+        green_mask = cv2.inRange(hsv, green_lower_range, green_upper_range)
+        orange_mask = cv2.inRange(hsv, orange_lower_range, orange_upper_range)
+        blue_mask = cv2.inRange(hsv, blue_lower_range, blue_upper_range)
+        yellow_mask = cv2.inRange(hsv, yellow_lower_range, yellow_upper_range)
+        pink_mask = cv2.inRange(hsv, pink_lower_range, pink_upper_range)
+        violet_mask = cv2.inRange(hsv, violet_lower_range, violet_upper_range)
+
+        # Count number of violet eggs
+        mask = violet_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        violet_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 80:
+                violet_count = violet_count + 1
+        except:
+            pass
+        #print radius
+        print('violet: ' + str(violet_count))
+
+        # Count number of green eggs
+        mask = green_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        green_mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        green_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 80:
+                green_count = green_count + 1
+        except:
+            pass
+        #print radius
+        print('green: ' + str(green_count))
+
+        # Count number of pink eggs
+        mask = pink_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        pink_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 100:
+                pink_count = pink_count + 1
+        except:
+            pass
+        #print radius
+        print('pink: ' + str(pink_count))
+
+        # Count number of blue eggs
+        mask = blue_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        blue_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 80:
+                blue_count = blue_count + 1
+        except:
+            pass
+        #print radius
+        print('blue: ' + str(blue_count))
+
+        # Count number of orange eggs
+        mask = orange_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        orange_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 100:
+                orange_count = orange_count + 1
+        except:
+            pass
+        print('orange: ' + str(orange_count))
+
+        # Count number of yellow eggs
+        mask = yellow_mask
+        mask = cv2.erode(mask, None, iterations=2)
+        yellow_mask = cv2.dilate(mask, None, iterations=6)
+        #masked = cv2.bitwise_and(img, img, mask=mask)
+        yellow_count = 0
+        try:
+            cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+        	cv2.CHAIN_APPROX_SIMPLE)[-2]
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
+            if radius > 5 and radius < 80:
+                yellow_count = yellow_count + 1
+        except:
+            pass
+        #print radius
+        print('yellow: ' + str(yellow_count))
+
         return 'num_eggs'
 
 
@@ -106,7 +255,7 @@ class prowl(smach.State):
         self.waypoint_index = None
 
         rospy.init_node('waypoint_nav')
-        waypoint_arr = rospy.get_param('/patrolling/waypoints')
+        waypoint_arr = rospy.get_param('/navigation/waypoints')
         rospy.loginfo('Printing arr:: %s', waypoint_arr)
         rospy.loginfo('Length of array:: %2f',len(waypoint_arr)-1 )
         for wp in waypoint_arr:
@@ -220,13 +369,13 @@ class prowl(smach.State):
         return 'prowl_pass'
 
 # Error
-class handle_error_state(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, outcomes=['error_handling_done'])
-
-    def execute(self, userdata):
-        while not(rospy.is_shutdown()):
-            pass
+# class handle_error_state(smach.State):
+#     def __init__(self):
+#         smach.State.__init__(self, outcomes=['error_handling_done'])
+#
+#     def execute(self, userdata):
+#         while not(rospy.is_shutdown()):
+#             pass
 
 
 def main():
@@ -241,8 +390,8 @@ def main():
             transitions={'prowl_pass':'click_picture',
                          'prowl_fail':'handle_error_state'})
 
-        smach.StateMachine.add('handle_error_state', handle_error_state(),
-            transitions={'error_handling_done':'handle_error_state'})
+        # smach.StateMachine.add('handle_error_state', handle_error_state(),
+        #     transitions={'error_handling_done':'handle_error_state'})
 
     # Execute SMACH plan
     outcome = sm.execute()
