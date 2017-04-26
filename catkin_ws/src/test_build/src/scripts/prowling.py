@@ -101,22 +101,22 @@ class mapping(smach.State):
 	    selector = random.randint(0,1)
 	    if selector == 1:
             	if self.leftAve > self.rightAve :
-                	self.angular_min = (self.leftAve - self.rightAve) * self.scale
+                	self.angular_min = 0.5*(self.leftAve - self.rightAve) * self.scale
                 	self.linear_min  = 0.125 * self.scale
             	else :
-                	self.angular_min = -(self.rightAve - self.leftAve) * self.scale
+                	self.angular_min = -0.5*(self.rightAve - self.leftAve) * self.scale
                 	self.linear_min  = 0.125 * self.scale
 	    else:
 		if self.leftAve < self.rightAve :
-                	self.angular_min = -(self.rightAve - self.leftAve) * self.scale
+                	self.angular_min = -0.5*(self.rightAve - self.leftAve) * self.scale
                 	self.linear_min  = 0.125 * self.scale
             	else :
-                	self.angular_min = (self.leftAve - self.rightAve) * self.scale
+                	self.angular_min = 0.5*(self.leftAve - self.rightAve) * self.scale
                 	self.linear_min  = 0.125 * self.scale
         else:
             #self.angular_min = 0.25 * self.scale
             self.angular_min = random.randrange(-0.3, 0.3) * self.scale
-            self.linear_min  = -0.5 * self.scale
+            self.linear_min  = -1 * self.scale
             self.escape_command = 1
             ##
     def _move_bot(self):
@@ -138,7 +138,7 @@ class mapping(smach.State):
         linear_msg  = Vector3(x=self.randLin, y=float(0.0), z=float(0.0))
         angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.randAng)
         if (self.halt == 1):
-	        self.publish_msg = Twist()
+	    self.publish_msg = Twist()
         else :
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
