@@ -205,7 +205,7 @@ class mapping(smach.State):
         #Publications and subscriptions
         ###
         rospy.loginfo("HIT!")
-	self.scan_sub = rospy.Subscriber("/front/scan", LaserScan, self._latestScan)
+	self.scan_sub = rospy.Subscriber("/scan", LaserScan, self._latestScan)
 	self.action_sub = rospy.Subscriber("/action_input", String, self.key_callback)
         self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=3)
         self.rate = rospy.Rate(self.ref_rate)
