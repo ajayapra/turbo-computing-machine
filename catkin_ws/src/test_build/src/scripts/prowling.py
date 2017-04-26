@@ -96,36 +96,31 @@ class mapping(smach.State):
         self.frontAve = self.getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
         # All Clear, randomly drive forward with varying turn
-        if (self.frontAve > 1.75) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
-            self.angular_min = -0.625 * self.scale
-            self.angular_max = 0.625 * self.scale
-            self.linear_min  = 0.75 * self.scale
-            self.linear_max  = 1.0 * self.scale
-            self.linear_acc  =  0.00005 * self.scale
-            self.angular_acc =  0.00001 * self.scale
+        if (self.frontAve > 2) and (self.leftAve > self.side_thresh) and (self.rightAve > self.side_thresh) :
+            self.angular_min = 0 * self.scale
+            self.linear_min  = 0.5 * self.scale
             self.danger_flag = 0
         elif self.frontAve > 1.1 :
-            self.linear_acc  =  0.00005 * self.scale
-            self.angular_acc =  0.00001 * self.scale
             self.escape_command = 1
-            if self.leftAve > self.rightAve :
-                self.angular_min = 0.75 * self.scale
-                self.angular_max = 1.0 * self.scale
-                self.linear_min  = 0.25 * self.scale
-                self.linear_max  = 0.50 * self.scale
-            else :
-                self.angular_min = -1.0 * self.scale
-                self.angular_max = -0.75 * self.scale
-                self.linear_min  = 0.25 * self.scale
-                self.linear_max  = 0.50 * self.scale
+	    selector = random.randint(0,1)
+	    if selector == 1:
+            	if self.leftAve > self.rightAve :
+                	self.angular_min = (self.leftAve - self.rightAve) * self.scale
+                	self.linear_min  = 0.125 * self.scale
+            	else :
+                	self.angular_min = -(self.rightAve - self.leftAve) * self.scale
+                	self.linear_min  = 0.125 * self.scale
+	    else:
+		if self.leftAve < self.rightAve :
+                	self.angular_min = -(self.rightAve - self.leftAve) * self.scale
+                	self.linear_min  = 0.125 * self.scale
+            	else :
+                	self.angular_min = (self.leftAve - self.rightAve) * self.scale
+                	self.linear_min  = 0.125 * self.scale
         else:
             #self.angular_min = 0.25 * self.scale
-            self.angular_min = 0.3 * self.scale
-            self.angular_max = 0.5  * self.scale
-            self.linear_min  = -0.05 * self.scale
-            self.linear_max  = 0 * self.scale
-            self.linear_acc  =  1.0 * self.scale
-            self.angular_acc =  1.0 * self.scale
+            self.angular_min = random.randrange(-0.3, 0.3) * self.scale
+            self.linear_min  = -0.5 * self.scale
             self.escape_command = 1
             ##
     def _move_bot(self):
@@ -142,21 +137,10 @@ class mapping(smach.State):
                 self.runcount = 0
                 #self.countLimit = random.randrange(5,25)
                 self.countLimit = random.randrange(self.count_min, self.count_max)
-                self.randLin = random.uniform(self.linear_min,self.linear_max)
-                self.randAng = random.uniform(self.angular_min,self.angular_max)
-                # push Twist msgs
-                #linear_msg  = Vector3(x=randLin, y=float(0.0), z=float(0.0))
-                #angular_msg = Vector3(x=float(0.0), y=float(0.0), z=randAng)
-
-        rospy.loginfo('randLin: %2f, randAng: %2f',self.randLin, self.randAng )
-
-        self.linSet = self.randLin
-        self.angSet = self.randAng
-
-        rospy.loginfo('LinSet:: %2f, AngSet:: %2f', self.linSet, self.angSet )
-
-        linear_msg  = Vector3(x=self.linSet, y=float(0.0), z=float(0.0))
-        angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.angSet)
+                self.randLin = self.linear_min
+                self.randAng = self.angular_min
+        linear_msg  = Vector3(x=self.randLin, y=float(0.0), z=float(0.0))
+        angular_msg = Vector3(x=float(0.0), y=float(0.0), z=self.randAng)
         if (self.halt == 1):
 	        self.publish_msg = Twist()
         else :
@@ -211,8 +195,8 @@ class mapping(smach.State):
         self.rate = rospy.Rate(self.ref_rate)
         self.linear_acc  =  0.01
         self.angular_acc =  0.005
-        self.count_min = 25
-        self.count_max = 40
+        self.count_min = 10
+        self.count_max = 20
         self.escape_command = 0
         self.danger_flag = 0
         self.side_delta  = 20
