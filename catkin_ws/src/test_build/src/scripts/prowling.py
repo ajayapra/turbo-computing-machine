@@ -261,7 +261,6 @@ class mapping(smach.State):
             self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         #self.publish_msg = Twist(linear=linear_msg, angular=angular_msg)
         self.pub.publish(self.publish_msg)
-        publish_markers()
         rospy.loginfo('Published Twist')
 
 
@@ -314,6 +313,7 @@ class get_waypoint(smach.State):
         self.pBase.pose.position.z = 0.0;
         self.pBase.header.stamp = self.listener.getLatestCommonTime("/base_link", "/map")
         self.pMap = self.listener.transformPose("/map", self.pBase)
+        publish_markers()	
         temp_waypoint = [self.pMap.pose.position.x,self.pMap.pose.position.y, self.pMap.pose.orientation.z, self.pMap.pose.orientation.w, alvar_num]
         return 'got_waypoint'
 
