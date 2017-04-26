@@ -156,8 +156,7 @@ class mapping(smach.State):
         self.frontAve = getMin(zeroAng - zeroOffset, zeroAng + zeroOffset, data)
         rospy.loginfo('\t%3.4f  -  %3.4f  -  %3.4f', self.leftAve, self.frontAve, self.rightAve)
 
-    def _move_bot(self):
-        if self.frontAve < 1.25 :
+        if self.frontAve < 1.1 :
             #self.angular_min = 0.25 * self.scale
             self.angular_min = 0.3 * self.scale
             self.angular_max = 0.5  * self.scale
@@ -205,10 +204,9 @@ class mapping(smach.State):
                 self.linear_min  = 0.25 * self.scale
                 #self.linear_max  = 0.75 * self.scale
                 self.linear_max  = 0.50 * self.scale
+		
+    def _move_bot(self):
                     # generate random movement mapping at random interval
-        #if self.runcount < self.countLimit :
-        #        self.runcount = self.runcount + 1
-        #        self.pub.publish(self.publish_msg)
         if self.runcount < self.countLimit:
             if (self.escape_command == 1) and (self.danger_flag == 0):
                 self.danger_flag = 1
