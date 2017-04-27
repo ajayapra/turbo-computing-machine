@@ -25,7 +25,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -71,16 +71,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        front_laser:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_laser_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         front_left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -99,6 +89,16 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        lms291:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        lms291_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         mid_mount:
           Alpha: 1
           Show Axes: false
@@ -215,6 +215,14 @@ Visualization Manager:
         patrolling: true
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /navigation/patrolling/viz_waypoints_array
+      Name: MarkerArray
+      Namespaces:
+        patrolling: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -238,8 +246,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 1.5708
-      Class: rviz/TopDownOrtho
+      Class: rviz/FPS
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -247,11 +254,14 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 25.1619
+      Pitch: 1.5698
+      Position:
+        X: -7.37101
+        Y: 20.2002
+        Z: 19.1059
       Target Frame: <Fixed Frame>
-      Value: TopDownOrtho (rviz)
-      X: 0.396188
-      Y: -0.158298
+      Value: FPS (rviz)
+      Yaw: 0.469606
     Saved: ~
 Window Geometry:
   Displays:
